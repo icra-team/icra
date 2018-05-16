@@ -1,0 +1,15 @@
+# This is a record of some helpful commands related to the subtrees of this repository
+
+# Initially adding subtrees
+git remote add -f wali -t NewtonDuetGaussian -m NewtonDuetGaussian http://github.com/WaliDev/WALi-OpenNWA.git
+git subtree add --prefix WALi-OpenNWA wali --squash
+git remote add -f duet -t Newton-ark2 -m Newton-ark2 http://github.com/zkincaid/duet.git
+git subtree add --prefix duet duet --squash
+
+# Updating subtrees 
+#    NOTE: only an ICRA maintainer has to do these steps!
+#          everybody else just does a single git pull!
+git fetch duet 
+git subtree pull --prefix duet duet --squash
+git fetch wali
+git subtree pull --prefix WALi-OpenNWA wali --squash
