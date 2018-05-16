@@ -1,0 +1,65 @@
+# #############################
+# Build the walidomains library
+
+import os,platform
+
+Import('WaliDir')
+Import('LibInstallDir')
+Import('ThirdPartyDir')
+Import('MkStatic')
+Import('BaseEnv')
+Import('Debug')
+
+if Debug:
+    print '\n+++ Entered "#/AddOns/Domains/Source/SConscript"\n'
+
+
+
+walidomains_files = Split("""
+./wali/domains/binrel/BinRel.cpp
+./wali/domains/binrel/ProgramBddContext.cpp
+./wali/domains/binrel/BinRel_Interface.cpp
+./wali/domains/binrel/nwa_detensor.cpp
+./wali/domains/binrel/BinRelMergeFns.cpp
+./wali/domains/reach/Reach.cpp
+./wali/domains/lh/LH.cpp
+./wali/domains/lh/PhaseLH.cpp
+./wali/domains/duet/DuetRel.cpp
+./wali/domains/nparel/NPARel.cpp
+./wali/domains/name_weight/nameWeight.cpp
+./wali/domains/tsl_weight/TSLWeight.cpp
+""")
+
+env = BaseEnv.Clone()
+
+built = []
+
+# BinRel needs glog. Make sure that glog is built in ThirdParty
+ListOfBuilds = ['glog']
+[(glog_lib,glog_inc)] = SConscript(os.path.join(ThirdPartyDir,'SConscript'), 'ListOfBuilds')
+
+# Disable warnings because of BuDDy
+env["WARNING_FLAGS"]="-Werror -Wno-unused"
+
+#buddy headers include path
+env.Append(CPPPATH=[os.path.join(WaliDir , 'AddOns', 'Domains' , 'ThirdParty', 'include')]) 
+#glog include path
+#env.Append(CPPPATH=[os.path.join(ThirdPartyDir, 'include')])
+env.Append(CPPPATH=[os.path.join(WaliDir , 'AddOns', 'Domains' , 'Source')])
+env.Append(CPPPATH=[glog_inc])
+# This line added by Jason Breck to get OCaml C headers (e.g., "caml/mlvalues.h") for DuetRel:
+env.Append(CPPPATH=[os.path.join(os.environ['HOME'],'include')])
+env.Append(LIBs=['camlrun'])
+
+if MkStatic:
+  walidomains = env.StaticLibrary('walidomains' , walidomains_files)
+  i = env.Install(LibInstallDir, walidomains)
+  built += i
+  Return('built')
+else:
+  walidomains = env.SharedLibrary('walidomains' , walidomains_files)
+  i = env.Install(LibInstallDir, walidomains)
+  built += i
+  Return('built')
+
+

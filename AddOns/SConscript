@@ -1,0 +1,11 @@
+import os,os.path;
+
+Import('BuildDir')
+
+built = []
+built += SConscript('Parse/SConscript')
+built += SConscript('Domains/SConscript')
+built += SConscript('RandomNwa/SConscript')
+built += SConscript('RandomFWPDS/SConscript', variant_dir=os.path.join(BuildDir,'AddOns','RandomFWPDS'), duplicate=0)
+built += SConscript('Xfa/SConscript')
+Return('built')

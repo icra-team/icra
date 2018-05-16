@@ -1,0 +1,60 @@
+Import('ProgEnv')
+Import('BinInstallDir')
+
+env = ProgEnv.Clone()
+
+
+def _ProgramTarget(env, command, function, namespace, source):
+    if function == None:
+        function = command
+    this_env = env.Clone()
+    this_env['CPPDEFINES']['CONSTRUCTION_FUNCTION'] = function
+    this_env['CPPDEFINES']['CONSTRUCTION_NAMESPACE'] = namespace
+    obj = this_env.Object('nwa-%s' % command, source)
+    prg = this_env.Program('nwa-%s.exe' % command, obj)
+    return prg
+
+def SingleProgramTarget(env, command, function=None, namespace='construct'):
+    return _ProgramTarget(env, command, function, namespace, 'single-nwa-command.cpp')
+
+def DoubleProgramTarget(env, command, function=None, namespace='construct'):
+    return _ProgramTarget(env, command, function, namespace, 'double-nwa-command.cpp')
+
+
+built = [
+    env.Program('nwa-print-stats.exe', ['print-stats.cpp']),
+    env.Program('nwa-print-dot.exe', ['print-dot.cpp']),
+    env.Program('nwa-is-empty.exe', ['is-empty.cpp']),
+    env.Program('nwa-get-example.exe', ['get-example.cpp']),
+    env.Program('nwa-is-member.exe', ['is-member.cpp']),
+    env.Program('nwa-language-equals.exe', ['language-equals.cpp']),
+    env.Program('nwa-language-subseteq.exe', ['language-subseteq.cpp']),
+
+    DoubleProgramTarget(env, 'intersect'),
+    DoubleProgramTarget(env, 'union', 'unionNwa'),
+    DoubleProgramTarget(env, 'concat'),
+
+    SingleProgramTarget(env, 'star'),
+    SingleProgramTarget(env, 'complement'),
+    SingleProgramTarget(env, 'determinize'),
+    SingleProgramTarget(env, 'reverse'),
+
+    SingleProgramTarget(env, 'expand', 'expandNwa', 'experimental')
+]
+
+if env["HAS_BOOST_FILESYSTEM"] and env["HAS_BOOST_SYSTEM"]:
+    built.append(env.Program('nwa-synchronize-alphabets.exe', ['synchronize-alphabets.cpp'],
+                             LIBS=["boost_filesystem", "boost_system", "wali"]))
+elif env["HAS_BOOST_FILESYSTEM"]:
+    built.append(env.Program('nwa-synchronize-alphabets.exe', ['synchronize-alphabets.cpp'],
+                             LIBS=["boost_filesystem", "wali"]))
+
+i = env.Install(BinInstallDir, built)
+
+built = i
+Return('built')
+
+# Yo emacs!
+# Local Variables:
+#   mode: python
+# End:

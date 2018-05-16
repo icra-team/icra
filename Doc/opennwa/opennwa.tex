@@ -1,0 +1,290 @@
+\documentclass{article}
+
+\makeatletter
+\def\and{%
+  \end{tabular}%
+  \begin{tabular}[t]{c}}
+\makeatother
+
+
+%\documentclass{llncs}
+\newcommand{\inst}[1]{$^{#1}$}
+
+\usepackage{minted}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+%\theoremstyle{definition}
+%\newtheorem{definition}{Definition}
+
+\newenvironment{definition}{%
+  \begin{quote}\textbf{Definition.}}{%
+  \end{quote}}
+
+\newcommand{\captionex}[2]{\caption[#1]{\textbf{#1.} #2}}
+
+
+%\usepackage{squeeze_llncs}
+\usepackage[left=1.6in,right=1.6in,top=1in,bottom=1in]{geometry}
+\usepackage{changepage}
+\usepackage{verbatim}
+%\usepackage{times}
+
+%\pagestyle{plain} % For page numbers
+%\pagenumbering{arabic}
+
+% \usepackage{ifthen}
+% \usepackage{alltt}
+% \usepackage{indentfirst}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{graphicx}
+% \usepackage{gdefs}
+% \usepackage{logdef}
+%\usepackage{setspace}
+\usepackage{hhline}
+\usepackage{refs}
+% \usepackage{graph}
+\usepackage{changebar}
+\usepackage{multirow}
+\usepackage{array}
+% \usepackage{wrapfig}
+% \usepackage[figuresright]{rotating}
+\usepackage[figuresleft]{rotating}
+\usepackage{color}
+%\usepackage[noend]{algorithmic}
+%\algsetup{indent=2em}
+\usepackage[noline,noend]{algorithm2e}
+%\usepackage{program}
+\usepackage{paralist}
+\usepackage{geometry}
+
+\usepackage{hyperref}
+\usepackage[all]{hypcap}
+
+\usepackage{threeparttable}
+
+\usepackage{misc}
+% Using this for writing inference rules
+\usepackage{mathpartir}
+
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
+
+\usepackage[section,above]{placeins}
+\usepackage[maxfloats=25]{morefloats}
+
+\usepackage{adjustbox}
+\usepackage{expdlist}
+\usepackage{etoolbox}
+\usepackage{settobox}
+%\usepackage{ulem} % for strike out
+
+\usepackage{afterpage}
+\newcommand{\antistupidfloats}{\afterpage{\clearpage}}
+
+\usepackage{microtype}
+
+\setcounter{topnumber}{5}
+\def\topfraction{0.99}
+\def\textfraction{0.05}
+\def\floatpagefraction{0.9}
+\setcounter{bottomnumber}{5}
+\def\bottomfraction{0.99}
+\setcounter{totalnumber}{10}
+\def\dbltopfraction{0.99}
+\def\dblfloatpagefraction{0.9}
+\setcounter{dbltopnumber}{5}
+
+\newlength{\defaultlabelsep}
+\setlength{\defaultlabelsep}{\labelsep}
+
+\usepackage{tweaklist}
+% this sets the spacings in the itemize environment
+\renewcommand{\itemhook}{\setlength{\topsep}{0pt}%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parsep}{0ex}%
+}
+
+% this sets the spacings in the enumerate environment
+\renewcommand{\enumhook}{\setlength{\topsep}{0pt}%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parsep}{0ex}%
+}
+
+
+% this sets the spacings in the description environment
+%\renewcommand{\descripthook}{\setlength{\topsep}{0pt}%
+%  \setlength{\itemsep}{0pt}%
+%  \setlength{\parsep}{0ex}%
+%  \setlength{\labelsep}{\textwidth}%
+%}
+
+
+% \usepackage{relsize}
+
+% \definecolor{highlight}{rgb}{.8,.8,.8}
+
+\newcommand{\bottom}{\bot}
+
+\newcommand{\toprule}{\hline}
+\newcommand{\midrule}{\hline}
+\newcommand{\bottomrule}{\hline}
+
+%\setdescription{labelsep=\textwidth}
+
+
+%%%%%%%%%%%%%%%%%%%
+
+\let\oldthebibliography=\thebibliography
+  \let\endoldthebibliography=\endthebibliography
+  \renewenvironment{thebibliography}[1]{%
+    \begin{oldthebibliography}{#1}%
+      \setlength{\parskip}{0ex}%
+      \setlength{\itemsep}{0ex}%
+  }%
+  {%
+    \end{oldthebibliography}%
+  }
+
+
+%% Modified from http://anthony.liekens.net/index.php/LaTeX/MultipleFootnoteReferences
+%% (I inserted the 'Footnote:' prefix)
+%%
+%% Use like:
+%%    \footnoteremember{myfootnote}{This is my footnote}
+%%    \footnoterecall{myfootnote}
+\newcommand{\footnoteremember}[2]{
+  \footnote{#2}
+  \newcounter{Footnote:#1}
+  \setcounter{Footnote:#1}{\value{footnote}}
+}
+\newcommand{\footnoterecall}[1]{
+  \footnotemark[\value{Footnote:#1}]
+}
+
+
+\sloppy
+\begin{document}
+\pagestyle{plain}
+\title{OpenNWA: Nested-Word Automata
+\thanks{\scriptsize Supported
+by NSF under grants CCF-\{0540955, 0810053, 0904371\},
+by ONR under grants N00014-\{09-1-0510, 10-M-0251\},
+by ARL under grant W911NF-09-1-0413,
+and by AFRL under grants FA9550-09-1-0279 and FA8650-10-C-7088.
+Any opinions, findings, and conclusions or recommendations expressed
+in this material are those of the author(s) and do not necessarily
+reflect the views of the sponsoring agencies.
+} 
+}
+
+
+
+\author{Evan Driscoll\inst{1} \and Aditya Thakur\inst{1} \and Amanda Burton\inst{1} \and Thomas Reps\inst{1,2}}
+%\institute{
+%  University of Wisconsin \and GrammaTech, Inc. \\
+%  \email{\{burtona,adi,driscoll,reps\}@cs.wisc.edu}
+%}
+\date{}
+
+%\begin{adjustwidth}{-.5in}{-.5in}
+\maketitle
+{\centering
+\inst{1}University of Wisconsin --- Madison \\
+Computer Sciences Department \\
+\texttt{\{driscoll,adi,burtona,reps\}@cs.wisc.edu} \\
+\vspace{\baselineskip}
+\inst{2}GrammaTech, Inc.
+
+}
+%\end{adjustwidth}
+
+
+
+\vspace{2\baselineskip}
+
+\input{macro} % Contains various defs and macros for PDS notation
+\input{macros}% Created by Tom, taken from FSTTCS submission
+
+%\newcommand{\TODO}[1]{\textbf{[TODO #1]}}
+
+\let\realincludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][Whatever]{}
+
+%\newcommand{\nwaimage}[2][]{\realincludegraphics[#1]{#2}}
+\newsavebox{\thenwaimagebox}
+\newlength{\thenwaimagewidth}
+\newlength{\thenwaimageheight}
+
+\newcommand{\nwaimage}[2][0.66]{%
+  \sbox{\thenwaimagebox}{\input{#2}}%
+  \settoboxwidth{\thenwaimagewidth}{\thenwaimagebox}%
+  \settoboxheight{\thenwaimageheight}{\thenwaimagebox}%
+  %
+  % If (width < textwidth) && (height < textheight)
+  %    don't resize
+  % else
+  %    do resize
+  %
+  % except split this up for easier latexing
+  %
+  \ifdimless{\thenwaimagewidth}{#1\textwidth}{%
+    \ifdimless{\thenwaimageheight}{#1\textheight}{%
+      \usebox{\thenwaimagebox}%
+    }{%
+      \adjustbox{width=#1\textwidth,height=#1\textheight,keepaspectratio=true}{\usebox{\thenwaimagebox}}%
+    }%
+  }{%
+    \adjustbox{width=#1\textwidth,height=#1\textheight,keepaspectratio=true}{\usebox{\thenwaimagebox}}%
+  }%
+}
+
+\newenvironment{functionlist}%
+               {\begin{list}{\TODO{MISSING}}{\setlength{\itemsep}{0pt}%
+                                             \setlength{\parsep}{0ex}}}
+               {\end{list}}
+\newcommand{\functionitem}[1][\TODO{missing}]{\item[#1]\hspace*{\fill}\\}
+\newcommand{\functionitemnonl}[1][\TODO{missing}]{\item[#1]}
+
+\newcommand{\functionDef}[4]{\item[\texttt{#1 \textsl{#2}(#3) #4}]\mbox{}\\}
+\newcommand{\functionDefEarly}[4]{\item[\texttt{#1 \textsl{#2}(#3) #4}]}
+\newcommand{\functionDefFirst}[4]{\vspace{0.5\baselineskip}\item[\texttt{#1 \textsl{#2}(#3) #4}]\mbox{}\\}
+\newcommand{\functionDefFirstEarly}[4]{\vspace{0.5\baselineskip}\item[\texttt{#1 \textsl{#2}(#3) #4}]}
+
+\newcommand{\functionDefNoCloseParen}[3]{\item[\texttt{#1 \textsl{#2}(#3}]\mbox{}\\}
+\newcommand{\functionDefEarlyNoCloseParen}[3]{\item[\texttt{#1 \textsl{#2}(#3}]}
+\newcommand{\functionDefFirstNoCloseParen}[3]{\vspace{0.5\baselineskip}\item[\texttt{#1 \textsl{#2}(#3}]\mbox{}\\}
+\newcommand{\functionDefFirstEarlyNoCloseParen}[3]{\vspace{0.5\baselineskip}\item[\texttt{#1 \textsl{#2}(#3}]}
+
+\setlength{\belowcaptionskip}{0.66\baselineskip}
+
+\newcommand{\wild}{\ensuremath{@}}
+\renewcommand{\epsilon}{\varepsilon}
+
+\input{01-overview}
+\clearpage
+\input{class-nested-word}
+\clearpage
+\input{class-nwa}
+\clearpage
+\input{namespace-query}
+\clearpage
+\input{parser}
+\clearpage
+\input{03-building-from-others}
+\clearpage
+\input{04-conversions}
+\clearpage
+\bibliographystyle{plain}
+\bibliography{df,mab}
+\clearpage
+\appendix
+\input{A.nwas}
+\clearpage
+\input{B.determinize}
+\clearpage
+\input{C.tables}
+
+\end{document}

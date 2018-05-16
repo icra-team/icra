@@ -1,0 +1,163 @@
+# ##################################################
+# Build wali library
+
+import os, re
+
+Import('Debug')
+Import('WaliDir')
+Import('LibInstallDir')
+Import('BaseEnv')
+Import('MkStatic')
+Import('Platform')
+
+
+# `find . -name "*.cpp"`, then remove Experimental.cpp, NWA.cpp, RelationOps.cpp
+nice_files = Split("""
+./wali/Reach.cpp
+./wali/StringSource.cpp
+./wali/Common.cpp
+./wali/SemElemPair.cpp
+./wali/KeySpace.cpp
+./wali/KeySetSource.cpp
+./wali/TotalOrderWorklist.cpp
+./wali/KeyOrderWorklist.cpp
+./wali/RankedWorklist.cpp
+./wali/ShortestPathWorklist.cpp
+./wali/SemElem.cpp
+./wali/SemElemTensor.cpp
+./wali/Exception.cpp
+./wali/Printable.cpp
+./wali/Key.cpp
+./wali/IntSource.cpp
+./wali/Markable.cpp
+./wali/WeightFactory.cpp
+./wali/KeyPairSource.cpp
+./wali/IMergeFn.cpp
+./wali/MergeFn.cpp
+./wali/MergeFnFactory.cpp
+./wali/ShortestPathSemiring.cpp
+./wali/LongestSaturatingPathSemiring.cpp
+./wali/domains/SemElemSet.cpp
+./wali/domains/RepresentativeString.cpp
+./wali/wpds/RuleFunctor.cpp
+./wali/wpds/Config.cpp
+./wali/wpds/ewpds/ERule.cpp
+./wali/wpds/ewpds/ETrans.cpp
+./wali/wpds/ewpds/EWPDS.cpp
+./wali/wpds/Rule.cpp
+./wali/wpds/fwpds/FWPDS.cpp
+./wali/wpds/fwpds/SWPDS.cpp
+./wali/wpds/fwpds/LazyTrans.cpp
+./wali/wpds/nwpds/NWPDS.cpp
+./wali/wpds/Wrapper.cpp
+./wali/wpds/DebugWPDS.cpp
+./wali/wpds/WPDS.cpp
+./wali/wpds/GenKeySource.cpp
+./wali/wfa/State.cpp
+./wali/wfa/WFA.cpp
+./wali/wfa/WFA-eclose.cpp
+./wali/wfa/WFA-path_summary.cpp
+./wali/wfa/ITrans.cpp
+./wali/wfa/Trans.cpp
+./wali/wfa/WeightMaker.cpp
+./wali/wfa/TransFunctor.cpp
+./wali/wfa/TransSet.cpp
+./wali/wfa/DeterminizeWeightGen.cpp
+./wali/wfa/epr/EPA.cpp
+./wali/wfa/epr/FunctionalWeight.cpp
+./wali/wfa/epr/FunctionalWeightMaker.cpp
+./wali/witness/WitnessExtend.cpp
+./wali/witness/WitnessWrapper.cpp
+./wali/witness/WitnessRule.cpp
+./wali/witness/Visitor.cpp
+./wali/witness/CalculatingVisitor.cpp
+./wali/witness/WitnessMergeFn.cpp
+./wali/witness/VisitorDot.cpp
+./wali/witness/WitnessTrans.cpp
+./wali/witness/VisitorPrinter.cpp
+./wali/witness/Witness.cpp
+./wali/witness/WitnessCombine.cpp
+./wali/witness/WitnessMerge.cpp
+./wali/witness/WitnessLengthWorklist.cpp
+./wali/graph/RegExp.cpp
+./wali/graph/LinkEval.cpp
+./wali/regex/Concat.cpp
+./wali/regex/Regex.cpp
+./wali/regex/Root.cpp
+./wali/regex/Star.cpp
+./wali/regex/Union.cpp
+./wali/util/StringUtils.cpp
+./wali/util/ParseArgv.cpp
+./wali/util/Timer.cpp
+./wali/util/details/Partition.cpp
+./opennwa/NWA.cpp
+./opennwa/details/SymbolStorage.cpp
+./opennwa/details/StateStorage.cpp
+./opennwa/details/TransitionInfo.cpp
+./opennwa/details/TransitionStorage.cpp
+./opennwa/NwaParser.cpp
+./opennwa/query/automaton.cpp
+./opennwa/query/weighted.cpp
+./opennwa/query/transitions.cpp
+./opennwa/query/calls.cpp
+./opennwa/query/returns.cpp
+./opennwa/query/internals.cpp
+./opennwa/query/language.cpp
+./opennwa/query/getSomeAcceptedWord.cpp
+./opennwa/query/stats.cpp
+./opennwa/query/PathVisitor.cpp
+./opennwa/query/ShortWitnessVisitor.cpp
+./opennwa/construct/nwa_complement.cpp
+./opennwa/construct/nwa_concat.cpp
+./opennwa/construct/nwa_reverse.cpp
+./opennwa/construct/nwa_union.cpp
+./opennwa/construct/nwa_determinize.cpp
+./opennwa/construct/nwa_intersect.cpp
+./opennwa/construct/nwa_quotient.cpp
+./opennwa/construct/nwa_star.cpp
+./opennwa/nwa_pds/NwaToPds.cpp
+./opennwa/nwa_pds/WpdsToNwa.cpp
+./opennwa/nwa_pds/plusWpds.cpp
+./opennwa/traverse/depth.cpp
+./opennwa/traverse/Expand.cpp
+./wali/graph/Functional.cpp
+""")
+
+
+
+naughty_files = Split("""
+    ./wali/graph/Graph.cpp
+    ./wali/graph/IntraGraph.cpp
+    ./wali/graph/InterGraph.cpp
+    ./wali/graph/SummaryGraph.cpp
+""")
+
+
+
+env = BaseEnv.Clone()
+        
+if Debug:
+    print '\n+++ Entered "#/Source/SConscript"\n'
+
+
+# Build these separately so we can use fewer warning flags
+if MkStatic:
+    naughty_objs = [env.StaticObject(naughty_file, WARNING_FLAGS='-Wno-sign-compare -Werror')
+                    for naughty_file in naughty_files]
+else:
+    naughty_objs = [env.SharedObject(naughty_file, WARNING_FLAGS='-Wno-sign-compare -Werror')
+                    for naughty_file in naughty_files]
+
+
+wali_files = nice_files + naughty_objs
+
+
+if MkStatic:
+    wali = env.StaticLibrary('wali' , wali_files)
+else:
+    wali = env.SharedLibrary('wali' , wali_files)
+
+i = env.Install(LibInstallDir, wali)
+built = i
+Return('built')
+

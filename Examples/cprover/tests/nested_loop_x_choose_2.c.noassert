@@ -1,0 +1,19 @@
+//#include <stdio.h>
+
+int main() {
+  int x, y, j;
+  int n = __VERIFIER_nondet_int();
+  __VERIFIER_assume(n > 0);
+
+  y = 0;
+  for(x = 0; x < n; x++) {
+    // Perform y = y + x;
+    for (j = 0; j < x; j++) {
+      y++;
+    }
+  }
+  
+  assert (2 * y == (n * n) - n);
+
+  return 0;
+}

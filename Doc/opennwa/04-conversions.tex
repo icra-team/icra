@@ -1,0 +1,641 @@
+\section{Conversions beween WPDSs and NWAs (namespace
+  \texttt{opennwa::nwa\_pds})}
+\label{Se:Conversions}
+
+
+It is possible to convert an NWA into a WALi WPDS and vice versa.
+However, the construction of an NWA from a WPDS is not the inverse
+of constructing a WPDS from an NWA, i.e., one cannot perform the two
+conversions in sequence and obtain the identity conversion.
+
+At a high level, the WPDS to NWA conversion works by making the NWA encode both the state
+of the WPDS and its top-of-stack symbol. A WPDS rule of the form $\langle
+p,q_1 \rangle \hookrightarrow \langle p,q_2 \rangle$ leaves the stack height
+unchanged, and is thus associated with an internal NWA transition; in this
+case, that transition goes from the state $(p,q_1)$ to $(p,q_2)$. The symbol
+of a transition is associated with the top-of-stack symbol of the source
+state, so in this example, the symbol labeling that transition would be
+$q_1$. In other words, the WPDS rule $\langle p,q_1 \rangle \hookrightarrow
+\langle p,q_2 \rangle$ is translated to the NWA internal transition
+$((p,q_1), q_1, (p,q_2))$.
+WPDS push rules correspond to NWA call transitions, and WPDS pop rules
+correspond to NWA return transitions.\footnote{
+This encoding is motivated by our uses of both WPDSs and NWAs in program
+analysis. It is common for WPDSs to have just one state, $p$, and to use the
+top-of-stack symbol to encode the ``current'' program point. Pushing
+something onto the stack corresponds to a call, and popping corresponds to a
+return. For NWAs, we use the states themselves to encode the current program
+point. (The function that
+converts a WPDS into an NWA supports multi-state WPDSs, however; a WPDS rule
+of the form $\langle p_1,q_1 \rangle \hookrightarrow
+\langle p_2,q_2 \rangle$ is translated to the NWA internal transition
+$((p_1,q_1), q_1, (p_2,q_2))$.)}
+
+The conversion in the other direction creates a WPDS with one primary state
+and one ``helper'' state for each NWA state that appears in the exit position
+of a return transition. The NWA's state is encoded by the symbol at the top of the WPDS's
+stack -- essentially the inverse of the encoding described in the previous
+paragraph. A slight complication arises in the case of return
+transitions. The NWA is able to look at both the exit node and the call
+predecessor. In the WPDS this would correspond to looking at the top two stack
+symbols -- but the WPDS is only allowed to look at the top \emph{one}. Hence each NWA return transition becomes
+two WPDS rules: the first pops the top symbol (which corresponds to the
+current NWA state) and remembers what it was using the helper state; the
+second rule looks at the call predecessor and the helper state to dispatch to
+the corresponding return site.
+
+The library also offers two kinds of variants of this conversion. First, there
+is a backwards variant that can be used for backwards dataflow-analysis
+problems. Second, the resulting WPDS can stack either calls or returns. The
+``stacking-calls'' version turns a call transition $(c, \sigma, e)$ into a
+WPDS rule $\langle p, c\rangle \hookrightarrow \langle p, e c\rangle$ --
+leaving the call predecessor $c$ on the stack. (This is the translation
+described in the previous paragraph.) The ``stacking-returns'' version
+has, in general, several WPDS push rules for each NWA call transition. Each
+push rule leaves a potential return site on the stack. (For example, if there
+is a call transition $(c,\sigma,e)$ and a return transition $(x, c, \sigma',
+r)$, then the WPDS will have a rule $\langle p,
+c\rangle\hookrightarrow\langle p, e r\rangle$.)
+
+
+The following functions are in the namespace \texttt{opennwa::nwa\_pds}
+and, except for \texttt{plusWpds()}, are declared in the header
+\texttt{opennwa/nwa\_pds/conversions.hpp}. The \texttt{WPDS} type is
+\texttt{wali::wpds::WPDS}, and is declared in \texttt{wali/wpds/WPDS.hpp}.
+
+
+\begin{functionlist}
+  \functionDefEarly{void}{WpdsToNwa}{Nwa \& out, const WPDS\& pds}{}
+  \functionDef{NwaRefPtr}{WpdsToNwa}{const WPDS\& pds}{}
+    Converts \texttt{pds} to an NWA, either storing the result in
+    \texttt{nwa} or returning it.
+
+\clearpage
+  \functionDefFirstEarly{WPDS}{NwaToWpdsCalls}{Nwa const \& nwa, WeightGen const \& wg}{}
+  \functionDefEarlyNoCloseParen{WPDS}{NwaToWpdsCalls}{\parbox[t]{4in}{Nwa const \& nwa, WeightGen const \& wg,\\ref\_ptr<Wrapper> wr)}}
+  \functionDefEarly{WPDS}{NwaToBackwardsWpdsCalls}{Nwa const \& nwa, WeightGen const \& wg}{}
+  \functionDefEarly{WPDS}{NwaToWpdsReturns}{Nwa const \& nwa, WeightGen const \& wg}{}
+  \functionDef{WPDS}{NwaToBackwardsWpdsReturn}{Nwa const \& nwa, WeightGen const \& wg}{}
+    These functions each construct a WPDS that is equivalent to \texttt{nwa} using the
+    appropriate method (backwards or forwards flow, and stacking calls or
+    stacking returns), returning the result. Uses \texttt{wg} to determine
+    weights for the WPDS's transitions. The second variant of
+    \texttt{NwaToWpdsCalls} takes a \texttt{wali::wpds::Wrapper} reference
+    \texttt{wr}, and the WPDS is constructed by passing \texttt{wr} to the
+    constructor. This feature can be used, for instance, if you would like the
+    resulting WPDS to support witness tracing. (If \texttt{wr} is
+    \texttt{NULL}, then the second version is equivalent to the first.)
+
+  \functionDefFirst{State}{getProgramControlLocation}{}{}
+    Returns the program state $p$ used as the primary WPDS state in the
+    result of the \texttt{NwaToWpds*} variants.
+
+  \functionDefFirst{State}{getControlLocation}{State exit, State call, State return}{}
+    Returns the WPDS state $p_{q_x}$ or $p_{q_3}$ used as a ``helper'' state
+    for return transitions from \texttt{exit} to \texttt{return} with
+    \texttt{call} as a predecessor.
+
+  \functionDefFirst{WPDS}{plusWpds}{Nwa const \& nwa, const WPDS\& base}{}
+    This function returns a WPDS that is the
+    product of the NWA \texttt{nwa} and WPDS \texttt{base}, as described in the ``Explicit
+    NWA plus PDS'' construction from \cite[\S6]{advancedquerying}. This
+    function is declared in the header
+    \texttt{opennwa/nwa\_pds/plusWpds.hpp}.
+\end{functionlist}
+
+
+\subsection{WPDS to NWA}
+\label{Se:WpdsToNwa}
+
+The \texttt{WpdsToNwa} functions convert a WPDS into an NWA in a manner
+faithful to the encoding sketched out in the introduction to this section.
+
+Assume that we have a WPDS $(P, \Gamma, \Delta )$ 
+where $\Delta = (\Delta_0, \Delta_1, \Delta_2)$. This 
+WPDS is converted into an NWA $(Q,\Sigma,\{\},\delta,\{\})$ using the following rules:
+
+\begin{mathpar}
+{\inferrule*[left=\textsc{States}]
+  { p \in P \\ q \in \Gamma }
+  { (p,q) \in Q }
+}
+\and
+{\inferrule*[left=\textsc{Alphabet}]
+  { q \in \Gamma }
+  { q \in \Sigma } 
+}
+\and 
+\\
+{\inferrule*[left=\textsc{Internal}]
+  { \langle p,q \rangle \hookrightarrow \langle p',q' \rangle \in  \Delta_1 }
+  { ( (p,q), q, (p',q') ) \in \delta_i  }
+}
+\and
+{\inferrule*[left=\textsc{Call}]
+  { \langle p,q_c \rangle \hookrightarrow \langle  p',q_e \hspace{.1cm} q_r \rangle \in \Delta_2 }
+  { ( (p,q_c), q_c, (p',q_e) ) \in \delta_c }
+} 
+\and
+{\inferrule*[left=\textsc{Return}]
+  { \langle p'',q_x \rangle \hookrightarrow \langle p''',\epsilon  \rangle \in \Delta_0 \\
+     \langle p,q_c \rangle \hookrightarrow \langle p',q_e \hspace{.1cm} q_r  \rangle \in \Delta_2 }
+  { ( (p'',q_x), (p,q_c), q_x, (p''',q_r) ) \in \delta_r }
+}
+\end{mathpar}
+
+Note that these rules generate an NWA return transition for each pair of WPDS pop
+and push rules; there is no constraint between the two rules.  This is
+because, with the exception of the ``revealed'' stack symbol $q_r$,
+everything that the push rule talks about concerns the call predecessor
+$(p,q_c)$ and entry node $(q', q_e)$; nothing that the pop rule talks about ---
+$p''$, $q_x$, or $p'''$ --- has any relation to those. (A consequence is that the
+number of NWA transitions may be quadratic in the number of
+WPDS rules.)
+
+
+In the resulting NWA, $Q_0$ and $Q_f$ are empty; client code must set the initial and
+final states as appropriate (with \texttt{addInitialState(State)} and
+\texttt{addFinalState(State)}. The keys that are generated for the names of the
+NWA states are part of the interface of this function; they are generated by
+\texttt{getKey(p, q)} where \texttt{p} and \texttt{q} are the keys of the
+WPDS state and stack symbol being converted.
+
+All weights on WPDS rules are ignored, and do not survive in any way in the
+resulting NWA. The client information for all states in the resulting NWA are
+set to \texttt{null}.
+
+
+\begin{figure}[t]
+  \centering
+    \begin{itemize}
+      \centering
+      \item{ $\langle p,main \rangle \hookrightarrow \langle p,q_1 \rangle$}
+      \item{ $\langle p,q_1 \rangle \hookrightarrow \langle p,c_1 \rangle$}
+      \item{ $\langle p,c_1 \rangle \hookrightarrow \langle p,e \hspace{.1cm} r_1 \rangle$}
+      \item{ $\langle p,e \rangle \hookrightarrow \langle p,q_2 \rangle$}
+      \item{ $\langle p,q_2 \rangle \hookrightarrow \langle p,q_3 \rangle$}
+      \item{ $\langle p,q_3 \rangle \hookrightarrow \langle p,x \rangle$}
+      \item{ $\langle p,x \rangle \hookrightarrow \langle p,\epsilon \rangle$}
+      \item{ $\langle p,r_1 \rangle \hookrightarrow \langle p,q_4 \rangle$}
+      \item{ $\langle p,q_4 \rangle \hookrightarrow \langle p,q_5 \rangle$}
+      \item{ $\langle p,q_5 \rangle \hookrightarrow \langle p,c_2 \rangle$}
+      \item{ $\langle p,c_2 \rangle \hookrightarrow \langle p,e \hspace{.1cm} r_2 \rangle$}
+      \item{ $\langle p,r_2 \rangle \hookrightarrow \langle p,q_6 \rangle$}
+      \item{ $\langle p,q_6 \rangle \hookrightarrow \langle p,exit \rangle$}
+    \end{itemize}
+  \caption{An example WPDS.}
+  \label{Fi:WpdsToNwa1}
+\end{figure}
+
+For example, the NWA created from the WPDS shown in
+\figref{WpdsToNwa1} is shown in \figref{WpdsToNwa2}.
+
+\begin{figure}[t]
+  \centering
+    \nwaimage[1]{Figures/pds-equivalent}
+  \caption{The NWA resulting from converting the WPDS in \figref{WpdsToNwa1} into an NWA.}
+  \label{Fi:WpdsToNwa2}
+\end{figure}
+
+
+
+\subsection{NWA to WPDS}
+\label{Se:NWAtoPDS}
+
+
+An NWA can also be converted into a WPDS. Weights for the rules of the
+resulting WPDS are provided using a mechanism described below.  In this way
+it is possible to use
+the WPDS reachability queries that are a part of the main WALi library on
+NWAs.  As mentioned in the introduction to \sectref{Conversions}, there are
+four variations on the NWA-to-WPDS conversion: forward flow with call states
+on the stack, backward flow with call states on the stack, forward flow with
+return states on the stack, and backward flow with return states on the
+stack. All four variations use \texttt{WeightGen} to determine weights for
+WPDS rules.
+
+\texttt{WeightGen} is an abstract class that client code must subclass to
+calculate the weights of the rules in the generated WPDS.  It allows the
+underlying NWA to be decoupled from the weight domain used in the WPDS.  See
+\cite[\S4-\S5]{wali} for details about weight domains.
+
+There is a trivial weight domain (containing $\overline{1}$ and
+$\overline{0}$ only) implemented in the class \texttt{wali::Reach}, defined in
+\texttt{wali/Reach.hpp}. A \texttt{WeightGen} subclass that returns elements
+from this reachability domain is provided as the \texttt{ReachGen} class,
+defined in \texttt{opennwa/WeightGen.hpp}. \texttt{ReachGen} returns
+$\overline{1}$ for all transitions.
+
+In addition, we provide shortest-path weights and two variants on a
+\texttt{WeightGen} subclass for them. The shortest path weights are
+implemented in the class \texttt{wali::ShortestPathSemiring} in
+\texttt{wali/ShortestPathSemiring.hpp}; a semiring element of this class
+consists of just a single integer. The two \texttt{WeightGen} implementations
+we provide (both defined in \texttt{opennwa/WeightGen.hpp}) are
+\texttt{ShortestPathGen} and \texttt{ShortestWordGen}. Both set the weight of
+each WPDS rule to have a length 1 (note that this is different from the
+semiring $\overline{1}$ element), except that \texttt{ShortestWordGen} uses
+length 0 for rules that correspond to $\varepsilon$ transitions. Thus
+\texttt{ShortestPathGen} results in a WPDS with weights that describe the
+length of the shortest \emph{path} through the NWA, from the initial
+configurations, while \texttt{ShortestWordGen} results in a WPDS with weights
+that describe the length of the shortest \emph{word}.
+
+
+The following operations are virtual methods of \texttt{WeightGen} intended to
+be overridden:
+
+\begin{functionlist} 
+  \functionDef{sem\_elem\_t}{WeightGen::getOne}{}{const = 0}  \nopagebreak
+    Returns an instance of the $\bar{1}$ element of the weight domain.
+
+  \functionDefFirstNoCloseParen{sem\_elem\_t}{getWeight}{%
+      \parbox[t]{4in}{
+        State source, ClientInfoRefPtr sourceInfo, \\  
+        Symbol symbol, Kind k, \\
+        State target, ClientInfoRefPtr targetInfo ) const}}  \nopagebreak
+    Computes and returns the weight for the rule corresponding to the
+    transition from \texttt{source} to \texttt{target} (of
+    kind \texttt{k})
+    labeled with symbol \texttt{symbol}. By default, returns \texttt{getOne()}.
+
+  \functionDefFirstNoCloseParen{sem\_elem\_t}{getWildWeight}{%
+      \parbox[t]{4in}{
+        State source, ClientInfoRefPtr sourceInfo, \\  
+        State target, ClientInfoRefPtr targetInfo ) const}}
+    Computes and returns the weight for the WPDS rule corresponding to the
+    transition from \texttt{source} to \texttt{target} labeled with the
+    meta-symbol \wild. By default, returns \texttt{getOne()}.
+
+  \functionDefFirst{sem\_elem\_t}{getExitWeight}{State src, ClientInfoRefPtr srcInfo}{const}
+  This method computes the weight (in the desired semiring) for the return rule of
+  the WPDS corresponding to the exit \texttt{src}.
+  Note: the value is generally the same as \texttt{getOne()}, which is what the
+  default implementation returns.
+
+\end{functionlist}
+
+
+\subsubsection{Forwards flow stacking calls}
+\label{Se:wpds-forwards-flow-stacking-calls}
+
+\noindent The conversion is performed by:
+
+
+
+\begin{mathpar}
+
+{\inferrule*%%[left=\textsc{States}]
+  { }
+  {p \in P}
+}
+\and 
+{\inferrule*
+  { (q_x,q_c,\sigma,q_r) \in \delta_r }
+  { p_{q_x} \in P }
+}
+\and
+{\inferrule*
+  { q \in Q }
+  { q \in \Gamma }
+}
+\and 
+{\inferrule*%%[left=\textsc{Internal}]
+  { (q,\sigma,q') \in \delta_i }
+  { \langle p,q \rangle \stackrel{w_1}{\hookrightarrow} \langle p,q' \rangle \in \Delta_1 }
+}
+\and
+{\inferrule*%%[left=\textsc{Call}]
+  { (q_c,\sigma, q_e) \in \delta_c }
+  {  \langle p,q_c \rangle \stackrel{w_2}{\hookrightarrow} \langle p, q_e \hspace{.1cm} q_c \rangle\in \Delta_2 }
+}
+\and
+{\inferrule*%%[left=\textsc{Return}]
+  { (q_x,q_c,\sigma,q_r) \in \delta_r }
+  { \langle p,q_x \rangle \stackrel{w_0}{\hookrightarrow} \langle p_{q_x},\epsilon \rangle \in \Delta_0 \\
+   \langle p_{q_x},q_c \rangle \stackrel{w_3}{\hookrightarrow} \langle p,q_r \rangle\in \Delta_1  }
+}
+\end{mathpar}
+\begin{align*}
+\text{where }
+w_0 & = \begin{cases}
+        \mathtt{wg.getWildWeight}(q_x,CI_{q_x},q_r,CI_{q_r}), & \text{if } \sigma = \text{\wild} \\
+        \mathtt{wg.getWeight}(q_x,CI_{q_x},\sigma,\mathtt{EXIT\_TO\_RET},q_r,CI_{q_r}), & \text{otherwise}
+      \end{cases}  \\
+w_1 &= \begin{cases}
+         \mathtt{wg.getWildWeight}(q,CI_q,q',CI_{q'}), & \text{if } \sigma = \text{\wild} \\
+         \mathtt{wg.getWeight}(q,CI_q,\sigma,\mathtt{INTRA},q',CI_{q'}), & \text{otherwise}
+      \end{cases} \\
+w_2 &= \begin{cases}
+         \mathtt{wg.getWildWeight}(q_c,CI_{q_c},q_e,CI_{q_e}), & \text{if } \sigma = \text{\wild} \\
+         \mathtt{wg.getWeight}(q_c,CI_{q_c},\sigma,\mathtt{CALL\_TO\_ENTRY},q_e,CI_{q_e}), & \text{otherwise}
+      \end{cases} \\
+w_3 &= \mathtt{wg.getOne}() 
+\end{align*}
+
+
+For example, the WPDS resulting from converting the NWA
+shown in \figref{NwaToWpds1} into a WPDS is shown in
+\figref{NwaToWpds4}. \\
+
+
+\subsubsection{Backwards flow stacking calls}
+
+The backwards-flow conversions are equivalent to calling
+\texttt{wali::\-nwa::\-construct::\-reverse} and then the corresponding forwards
+flow version. When reversing, call transitions become return transitions (and
+vice versa), and so call sites become return sites (and vice versa).
+Return sites in the original automaton behave as call sites in the reversed
+automaton, and thus this version of the NWA-to-WPDS conversion stacks return
+states. (In
+other words, the \texttt{Calls} and \texttt{Returns} part of
+\texttt{NwaTo\-Backwards\-WpdsCalls} and
+\texttt{NwaTo\-Backwards\-WpdsReturns} refer to the behavior of the states in
+the reversed automaton, not the role they play in the original.)
+
+For example, the result of converting the NWA in
+\figref{NwaToWpds1} into a backwards flow WPDS is shown in \figref{NwaToWpds5}.
+
+
+Formally, the conversion is performed by:
+
+
+\begin{mathpar}
+{\inferrule*%%[left=\textsc{States}]
+  { }
+  {p \in P}
+}
+\and 
+{\inferrule*
+  { (q_c,\sigma,q_e) \in \delta_c }
+  { p_{q_e} \in P }
+}
+\and
+{\inferrule*
+  { q \in Q }
+  { q \in \Gamma }
+}
+\and 
+{\inferrule*%%[left=\textsc{Internal}]
+  { (q,\sigma,q') \in \delta_i }
+  { \langle p,q' \rangle \stackrel{w_1}{\hookrightarrow} \langle p,q \rangle \in \Delta_1 }
+}
+\and  
+{\inferrule*%%[left=\textsc{Call}]
+  { (q_c,\sigma, q_e) \in \delta_c \\ (q_x,q_c,\gamma,q_r) \in \delta_r }
+  { \langle p,q_e \rangle \stackrel{w_0}{\hookrightarrow} \langle p_{q_e},\epsilon \rangle \in \Delta_0 \\
+    \langle p_{q_e},q_r \rangle \stackrel{w_3}{\hookrightarrow} \langle p,q_c  \rangle \in \Delta_1 }
+}
+\and
+{\inferrule*%%[left=\textsc{Return}]
+  { (q_x,q_c,\sigma,q_r) \in \delta_r }
+  {  \langle p,q_r \rangle \stackrel{w_2}{\hookrightarrow} \langle p,q_x \hspace{.1cm} q_r
+  \rangle \in \Delta_2 }
+}
+\end{mathpar}
+\begin{align*}
+\text{where }
+w_0 &= \begin{cases}
+           \mathtt{wg.getWildWeight}(q_c,CI_{q_c},q_e,CI_{q_e}), & \text{if } \sigma = \text{\wild} \\
+           \mathtt{wg.getWeight}(q_c,CI_{q_c},\sigma, \mathtt{CALL\_TO\_ENTRY},q_e,CI_{q_e}), & \text{otherwise}
+      \end{cases} \\
+w_1 &= \begin{cases}
+           \mathtt{wg.getWildWeight}(q,CI_q,q',CI_{q'}), & \text{if } \sigma = \text{\wild} \\
+           \mathtt{wg.getWeight}(q,CI_q,\sigma, \mathtt{INTRA},q',CI_{q'}), & \text{otherwise}
+       \end{cases} \\
+w_2 &= \begin{cases}
+          \mathtt{wg.getWildWeight}(q_x,CI_{q_x},q_r,CI_{q_r}), & \text{if } \sigma = \text{\wild} \\
+          \mathtt{wg.getWeight}(q_x,CI_{q_x},\sigma, \mathtt{EXIT\_TO\_RET},q_r,CI_{q_r}), & \text{otherwise}
+      \end{cases} \\
+w_3 &= \mathtt{wg.getOne}()
+\end{align*}
+
+
+\subsubsection{Forwards flow stacking returns}
+
+As an example, converting the NWA in \figref{NwaToWpds1} into a WPDS results
+in the WPDS shown in \figref{NwaToWpds2}. \\
+
+
+The conversion is performed by:
+
+
+\begin{mathpar}
+{\inferrule*%%[left=\textsc{States}]
+  { }
+  {p \in P}
+}
+\and 
+{\inferrule*
+  { (q_x,q_c,\sigma,q_r) \in \delta_r }
+  { p_{q_x} \in P }
+}
+\and
+{\inferrule*
+  { q \in Q }
+  { q \in \Gamma }
+}
+\and 
+{\inferrule*%%[left=\textsc{Internal}]
+  { (q,\sigma,q') \in \delta_i }
+  { \langle p,q  \rangle \stackrel{w_1}{\hookrightarrow} \langle p,q' \rangle \in \Delta_1 }
+}
+\and
+{\inferrule*%%[left=\textsc{Call}]
+  { (q_c,\sigma, q_e) \in \delta_c \\ (q_x,q_c,\gamma,q_r) \in \delta_r }
+  { \langle p,q_c \rangle \stackrel{w_2}{\hookrightarrow}  \langle p, q_e \hspace{.1cm} q_r \rangle \in \Delta_2 }
+}
+\and 
+{\inferrule*%%[left=\textsc{Return}]
+  { (q_x,q_c,\sigma,q_r) \in \delta_r }
+  { \langle p,q_x \rangle \stackrel{w_0}{\hookrightarrow} \langle p_{q_x},\epsilon \rangle \in  \Delta_0 \\
+    \langle  p_{q_x},q_r \rangle \stackrel{w_3}{\hookrightarrow} \langle p,q_r \rangle \in \Delta_1 }
+}
+\end{mathpar}
+\begin{align*}
+\text{where }
+w_0 &= \mathtt{wg.getOne}() \\
+w_1 &= \begin{cases}
+           \mathtt{wg.getWildWeight}(q,CI_q,q',CI_{q'}), & \text{if } \sigma = \text{\wild} \\
+           \mathtt{wg.getWeight}(q,CI_q,\sigma, \mathtt{INTRA},q',CI_{q'}), & \text{otherwise}
+       \end{cases} \\
+w_2 &= \begin{cases}
+           \mathtt{wg.getWildWeight}(q_c,CI_{q_c},q_e,CI_{q_e}), & \text{if } \sigma = \text{\wild} \\
+           \mathtt{wg.getWeight}(q_c,CI_{q_c},\sigma, \mathtt{CALL\_TO\_ENTRY},q_e,CI_{q_e}), & \text{otherwise}
+      \end{cases} \\
+w_3 &= \begin{cases}
+          \mathtt{wg.getWildWeight}(q_x,CI_{q_x},q_r,CI_{q_r}), & \text{if } \sigma = \text{\wild} \\
+          \mathtt{wg.getWeight}(q_x,CI_{q_x},\sigma, \mathtt{EXIT\_TO\_RET},q_r,CI_{q_r}), & \text{otherwise}
+      \end{cases} 
+\end{align*}
+
+
+
+
+\subsubsection{Backwards flow stacking returns}
+
+As an example, converting the NWA in
+\figref{NwaToWpds1} into a backwards flow WPDS results in
+the WPDS shown in \figref{NwaToWpds3}. \\
+
+
+\noindent The conversion is performed by:
+
+
+
+\begin{mathpar}
+{\inferrule*[left=\textsc{States}]
+  { }
+  {p \in P}
+}
+\and 
+{\inferrule*
+  { (q_c,\sigma,q_e) \in \delta_c }
+  { p_{q_e} \in P }
+}
+\and
+{\inferrule*
+  { q \in Q }
+  { q \in \Gamma }
+}
+\and 
+{\inferrule*%%[left=\textsc{Internal}]
+  { (q,\sigma,q') \in \delta_i }
+  { \langle  p,q' \rangle \stackrel{w_1}{\hookrightarrow} \langle p,q \rangle \in \Delta_1 }
+}
+\and
+{\inferrule*%%[left=\textsc{Call}]
+  { (q_c,\sigma, q_e) \in \delta_c }
+  { \langle  p,q_e \rangle \stackrel{w_0}{\hookrightarrow} \langle p_{q_e},\epsilon \rangle \in \Delta_0 \\
+    \langle  p_{q_e},q_c \rangle \stackrel{w_3}{\hookrightarrow} \langle p,q_c \rangle \in \Delta_1  }
+}
+\and 
+{\inferrule*%%[left=\textsc{Return}]
+  { (q_x,q_c,\sigma,q_r) \in \delta_r }
+  { \langle p,q_r \rangle \stackrel{w_2}{\hookrightarrow} \langle p,q_x \hspace{.1cm} q_c  \rangle \in \Delta_2 }
+}
+\end{mathpar}
+\begin{align*}
+\text{where }
+w_0 &= \mathtt{wg.getOne}() \\
+w_1 &= \begin{cases}
+           \mathtt{wg.getWildWeight}(q,CI_q,q',CI_{q'}), & \text{if } \sigma = \text{\wild} \\
+           \mathtt{wg.getWeight}(q,CI_q,\sigma, \mathtt{INTRA},q',CI_{q'}), & \text{otherwise}
+       \end{cases} \\
+w_2 &= \begin{cases}
+          \mathtt{wg.getWildWeight}(q_x,CI_{q_x},q_r,CI_{q_r}), & \text{if } \sigma = \text{\wild} \\
+          \mathtt{wg.getWeight}(q_x,CI_{q_x},\sigma, \mathtt{EXIT\_TO\_RET},q_r,CI_{q_r}), & \text{otherwise}
+      \end{cases} \\
+w_3 &= \begin{cases}
+           \mathtt{wg.getWildWeight}(q_c,CI_{q_c},q_e,CI_{q_e}), & \text{if } \sigma = \text{\wild} \\
+           \mathtt{wg.getWeight}(q_c,CI_{q_c},\sigma, \mathtt{CALL\_TO\_ENTRY},q_e,CI_{q_e}), & \text{otherwise}
+      \end{cases} 
+\end{align*}
+
+
+
+\begin{figure}[p]
+  \centering
+  \begin{minipage}{\textwidth}
+    \nwaimage[1]{Figures/pre-pds-nwa}
+    \caption{An example NWA.}
+    \label{Fi:NwaToWpds1}
+  \end{minipage}
+  \begin{minipage}{0.42\textwidth}
+    \begin{itemize}
+      \centering
+      \item{ $\langle p,main \rangle \hookrightarrow \langle p,q_1 \rangle$}
+      \item{ $\langle p,q_1 \rangle \hookrightarrow \langle p,c_1 \rangle$}
+      \item{ $\langle p,e \rangle \hookrightarrow \langle p,q_2 \rangle$}
+      \item{ $\langle p,q_2 \rangle \hookrightarrow \langle p,q_3 \rangle$}
+      \item{ $\langle p,q_3 \rangle \hookrightarrow \langle p,x \rangle$}
+      \item{ $\langle p,r_1 \rangle \hookrightarrow \langle p,q_4 \rangle$}
+      \item{ $\langle p,q_4 \rangle \hookrightarrow \langle p,q_5 \rangle$}
+      \item{ $\langle p,q_5 \rangle \hookrightarrow \langle p,c_2 \rangle$}
+      \item{ $\langle p,r_2 \rangle \hookrightarrow \langle p,q_6 \rangle$}
+      \item{ $\langle p,q_6 \rangle \hookrightarrow \langle p,exit \rangle$}
+      \item{ $\langle p,c_1 \rangle \hookrightarrow \langle p,e \hspace{.1cm} c_1 \rangle$}
+      \item{ $\langle p,c_2 \rangle \hookrightarrow \langle p,e \hspace{.1cm} c_2 \rangle$}
+      \item{ $\langle p,x \rangle \hookrightarrow \langle p_x, \epsilon \rangle$}
+      \item{ $\langle p_x,c_1 \rangle \hookrightarrow \langle p,r_1 \rangle$}
+      \item{ $\langle p,x \rangle \hookrightarrow \langle p_x, \epsilon \rangle$}
+      \item{ $\langle p_x,c_2 \rangle \hookrightarrow \langle p,r_2 \rangle$}
+    \end{itemize}
+    \caption{The WPDS resulting from calling \texttt{NwaToWpdsCalls} on \figref{NwaToWpds1}}
+    \label{Fi:NwaToWpds4}
+  \end{minipage}
+  \hspace{0.1\textwidth}
+  \begin{minipage}{0.42\textwidth}
+    \centering
+    \begin{itemize}
+      \centering
+      \item{ $\langle p,q_1 \rangle \hookrightarrow \langle p,main \rangle$}
+      \item{ $\langle p,c_1 \rangle \hookrightarrow \langle p,q_1 \rangle$}
+      \item{ $\langle p,q_2 \rangle \hookrightarrow \langle p,e \rangle$}
+      \item{ $\langle p,q_3 \rangle \hookrightarrow \langle p,q_2 \rangle$}
+      \item{ $\langle p,x \rangle \hookrightarrow \langle p,q_3 \rangle$}
+      \item{ $\langle p,q_4 \rangle \hookrightarrow \langle p,r_1 \rangle$}
+      \item{ $\langle p,q_5 \rangle \hookrightarrow \langle p,q_4 \rangle$}
+      \item{ $\langle p,c_2 \rangle \hookrightarrow \langle p,q_5 \rangle$}
+      \item{ $\langle p,q_6 \rangle \hookrightarrow \langle p,r_2 \rangle$}
+      \item{ $\langle p,exit \rangle \hookrightarrow \langle p,q_6 \rangle$}
+      \item{ $\langle p,r_1 \rangle \hookrightarrow \langle p,x \hspace{.1cm} r_1 \rangle$}
+      \item{ $\langle p,r_2 \rangle \hookrightarrow \langle p,x \hspace{.1cm} r_2 \rangle$}
+      \item{ $\langle p,e \rangle \hookrightarrow \langle p_e, \epsilon \rangle$}
+      \item{ $\langle p_e,r_1 \rangle \hookrightarrow \langle p,c_1 \rangle$}
+      \item{ $\langle p,e \rangle \hookrightarrow \langle p_e, \epsilon \rangle$}
+      \item{ $\langle p_e,r_2 \rangle \hookrightarrow \langle p,c_2 \rangle$}
+    \end{itemize}
+    \caption{The result of calling \texttt{NwaToBackwardsWpdsCalls} on \figref{NwaToWpds1}}
+    \label{Fi:NwaToWpds5}
+  \end{minipage}
+  \begin{minipage}{0.42\textwidth}
+    \centering
+    \begin{itemize}
+      \centering
+      \item{ $\langle p,main \rangle \hookrightarrow \langle p,q_1 \rangle$}
+      \item{ $\langle p,q_1 \rangle \hookrightarrow \langle p,c_1 \rangle$}
+      \item{ $\langle p,e \rangle \hookrightarrow \langle p,q_2 \rangle$}
+      \item{ $\langle p,q_2 \rangle \hookrightarrow \langle p,q_3 \rangle$}
+      \item{ $\langle p,q_3 \rangle \hookrightarrow \langle p,x \rangle$}
+      \item{ $\langle p,r_1 \rangle \hookrightarrow \langle p,q_4 \rangle$}
+      \item{ $\langle p,q_4 \rangle \hookrightarrow \langle p,q_5 \rangle$}
+      \item{ $\langle p,q_5 \rangle \hookrightarrow \langle p,c_2 \rangle$}
+      \item{ $\langle p,r_2 \rangle \hookrightarrow \langle p,q_6 \rangle$}
+      \item{ $\langle p,q_6 \rangle \hookrightarrow \langle p,exit \rangle$}
+      \item{ $\langle p,c_1 \rangle \hookrightarrow \langle p,e \hspace{.1cm} r_1 \rangle$}
+      \item{ $\langle p,c_2 \rangle \hookrightarrow \langle p,e \hspace{.1cm} r_2 \rangle$}
+      \item{ $\langle p,x \rangle \hookrightarrow \langle p_x, \epsilon \rangle$}
+      \item{ $\langle p_x,r_1 \rangle \hookrightarrow \langle p,r_1 \rangle$}
+      \item{ $\langle p,x \rangle \hookrightarrow \langle p_x, \epsilon \rangle$}
+      \item{ $\langle p_x,r_2 \rangle \hookrightarrow \langle p,r_2 \rangle$}
+    \end{itemize}
+    \caption{The WPDS resulting from calling \texttt{NwaToWpdsReturns} on \figref{NwaToWpds1}}
+    \label{Fi:NwaToWpds2}
+  \end{minipage}
+  \hspace{0.1\textwidth}
+  \begin{minipage}{0.42\textwidth}
+    \centering
+    \begin{itemize}
+      \centering
+      \item{ $\langle p,q_1 \rangle \hookrightarrow \langle p,main \rangle$}
+      \item{ $\langle p,c_1 \rangle \hookrightarrow \langle p,q_1 \rangle$}
+      \item{ $\langle p,q_2 \rangle \hookrightarrow \langle p,e \rangle$}
+      \item{ $\langle p,q_3 \rangle \hookrightarrow \langle p,q_2 \rangle$}
+      \item{ $\langle p,x \rangle \hookrightarrow \langle p,q_3 \rangle$}
+      \item{ $\langle p,q_4 \rangle \hookrightarrow \langle p,r_1 \rangle$}
+      \item{ $\langle p,q_5 \rangle \hookrightarrow \langle p,q_4 \rangle$}
+      \item{ $\langle p,c_2 \rangle \hookrightarrow \langle p,q_5 \rangle$}
+      \item{ $\langle p,q_6 \rangle \hookrightarrow \langle p,r_2 \rangle$}
+      \item{ $\langle p,exit \rangle \hookrightarrow \langle p,q_6 \rangle$}
+      \item{ $\langle p,r_1 \rangle \hookrightarrow \langle p,x \hspace{.1cm} c_1 \rangle$}
+      \item{ $\langle p,r_2 \rangle \hookrightarrow \langle p,x \hspace{.1cm} c_2 \rangle$}
+      \item{ $\langle p,e \rangle \hookrightarrow \langle p_e, \epsilon \rangle$}
+      \item{ $\langle p_e,c_1 \rangle \hookrightarrow \langle p,c_1 \rangle$}
+      \item{ $\langle p,e \rangle \hookrightarrow \langle p_e, \epsilon \rangle$}
+      \item{ $\langle p_e,c_2 \rangle \hookrightarrow \langle p,c_2 \rangle$}
+    \end{itemize}
+    \caption{The result of calling \texttt{Nwa\-To\-Backwards\-Wpds\-Returns} on \figref{NwaToWpds1}}
+    \label{Fi:NwaToWpds3}
+  \end{minipage}
+\end{figure}

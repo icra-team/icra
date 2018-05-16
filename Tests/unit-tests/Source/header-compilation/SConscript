@@ -1,0 +1,31 @@
+import fnmatch
+import os
+import platform
+
+headers = []
+for root, dirnames, filenames in os.walk('../../../../Source'):
+    headers.extend(Glob(root + '/*.hpp'))
+
+
+Import('BaseEnv')
+
+objs = []
+bad_headers = ['OpenFstInterop.hpp', 'ProcedureNWAs.hpp', 'RelationOpsBuddy.hpp', 'RelationOpsPaired.hpp',
+               'abbreviated-nwa.hpp', 'iterators.hpp', 'PriorityWorklist.boost_heap.hpp']
+
+for h in headers:
+    if h.name not in bad_headers:
+        if 'Windows' in platform.system():
+            cpp = BaseEnv.Command(h.name + '.cpp', [], 'echo #include \"' + h.abspath + '\" > $TARGET')
+        else:
+            cpp = BaseEnv.Command(h.name + '.cpp', [], 'echo \'#include \"' + h.abspath + '\"\' > $TARGET')
+        o = BaseEnv.Object(cpp)
+        objs.append(o)
+
+Return('objs')
+
+#print [h.abspath for h in headers]
+#print h
+#print dir(headers[0])
+
+

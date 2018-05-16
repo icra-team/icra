@@ -1,0 +1,8 @@
+#include "opennwa/construct/complement.hpp"
+#include "opennwa/construct/concat.hpp"
+#include "opennwa/construct/determinize.hpp"
+#include "opennwa/construct/intersect.hpp"
+#include "opennwa/construct/reverse.hpp"
+#include "opennwa/construct/star.hpp"
+#include "opennwa/construct/union.hpp"
+#include "opennwa/construct/quotient.hpp"
