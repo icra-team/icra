@@ -1,0 +1,53 @@
+
+\begin{tikzpicture}[>=latex,line join=bevel,]
+  \pgfsetlinewidth{1bp}
+%%
+\pgfsetcolor{black}
+  % Edge: Exit -> End
+  \pgfsetcolor{red}
+  \draw [->] (86.498bp,77.047bp) .. controls (86.533bp,67.46bp) and (86.587bp,53.001bp)  .. (86.671bp,30.203bp);
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (68.565bp,58.777bp) node {ret: Begin, };
+  % Edge: Begin__precursor__ -> Begin
+  \draw [->] (36.417bp,277.25bp) .. controls (40.43bp,268.93bp) and (45.259bp,258.91bp)  .. (53.842bp,241.1bp);
+  % Edge: Entry -> Exit
+  \draw [->] (76.501bp,147.14bp) .. controls (78.261bp,136.63bp) and (80.881bp,120.99bp)  .. (84.681bp,98.311bp);
+  \draw (68.746bp,126.77bp) node {a};
+  % Edge: Begin -> Entry
+  \pgfsetcolor{green}
+  \draw [->] (61.905bp,217.89bp) .. controls (64.085bp,207.7bp) and (67.305bp,192.66bp)  .. (72.08bp,170.35bp);
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (81.926bp,202.1bp) node {call};
+  % Node: Entry
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (75bp,159bp) ellipse (24bp and 12bp);
+  \draw (74.531bp,158.9bp) node {Entry};
+\end{scope}
+  % Node: Begin
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (59bp,230bp) ellipse (23bp and 12bp);
+  \draw (59.407bp,229.56bp) node {Begin};
+\end{scope}
+  % Node: End
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (87bp,16bp) ellipse (20bp and 11bp);
+  \draw (87bp,16bp) ellipse (24bp and 15bp);
+  \draw (86.725bp,15.5bp) node {End};
+\end{scope}
+  % Node: Exit
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (86bp,88bp) ellipse (20bp and 11bp);
+  \draw (86.459bp,87.701bp) node {Exit};
+\end{scope}
+%
+\end{tikzpicture}

@@ -1,0 +1,189 @@
+\section{The \texttt{Nwa} class}
+\label{Se:NWA-class}
+
+\subsection{Construction, copying, assignment, and clearing}
+\label{Se:Construction}
+
+The NWA provides two constructors: the default constructor and the copy
+constructor. The default constructor creates an empty NWA. Thereafter,
+client code can add or remove states, add or remove symbols, add or remove
+transitions, and set the status of certain states as initial or final.
+
+
+The following functions are basic NWA operations:
+\begin{functionlist}
+  \functionDef{}{Nwa::Nwa}{}{}
+    Constructs an empty NWA.
+
+  \functionDefFirst{}{Nwa::Nwa}{Nwa const \& other}{}
+    Copies \texttt{other}; the
+    automata will not share structure. Any client information that is present is cloned.
+
+  \functionDefFirst{Nwa\&}{Nwa::operator=}{Nwa const \& other}{}
+    Assigns \texttt{other} to \texttt{this};
+    the automata will not share structure. Client information is cloned.
+
+  \functionDefFirst{bool}{Nwa::operator==}{Nwa const \& other}{}
+    Determines whether the two automata are structurally equal --- that is,
+    they contain exactly the same set of states (including initial and final
+    states), symbols, and transitions --- and returns the result. (To test
+    language equality, use the \texttt{languageEquals} function covered
+    in\sectref{namespace-query}.)
+
+  \functionDefFirst{void}{Nwa::clear}{}{}
+    Removes all states, symbols, and transitions from the NWA.
+
+\end{functionlist}
+
+
+\subsection{Simple manipulations}
+
+An \texttt{Nwa} object tracks the set of states, symbols, and transitions in the
+automaton. It also tracks the set of initial and accepting states.
+Counting each kind of transition separately, this gives 7 kinds of
+``entities'' that client code may need to manipulate.
+
+For each kind of entity, there are \texttt{Nwa} member functions to add and
+remove a single entity, check whether a particular entity is in the
+automaton, count the number of entities of a particular type, remove all
+entities of a particular type, and retrieve the set of entities in the
+NWA. In addition, there are member functions for counting and clearing all
+transitions, regardless of the type.
+
+The names of these functions are very regular, but
+\tableref{simple-functions} (\appref{Tables}) gives a list.
+
+The only potential difficulties are in the interactions between the
+functions. Naturally, removing a state or a symbol also removes all
+transitions involving it; likewise, clearing all states or clearing all symbols
+also clears all transitions. (Calling \texttt{removeInitialState} or \texttt{removeFinalState}
+does not cause ripple effects.)
+
+Adding a transition implicitly adds the states and symbol involved in that
+transition if they are not already present; hence it is not necessary to
+explicitly add all states and symbols before adding transitions. (It is quite
+reasonable to build an NWA by just adding initial states, final states, and
+transitions.)
+
+
+The system supports two meta-symbols: \texttt{opennwa::EPSILON}
+(\texttt{$\epsilon$}) and \texttt{opennwa::WILD} (\texttt{\wild}).
+\texttt{EPSILON} is the standard $\epsilon$ from automata theory; it
+denotes that a transition can be traversed without matching
+and consuming an input symbol.  Epsilon symbols cannot label call or return
+transitions. \texttt{WILD} is the `any' symbol; it matches any single
+symbol.  Because the NWA alphabet is not fixed, the actual symbols
+that \texttt{WILD} stands for is fluid. (This is useful if you do not know
+all possible symbols at the time you construct the NWA.)  \textsl{Note:}
+\texttt{EPSILON} and \texttt{WILD} are not explicit
+elements of $\Sigma$; see \tableref{simple-functions}, footnote 5.
+
+
+
+\subsection{Client Information}
+\label{Se:client-info}
+
+Each state in the NWA can be associated with some client-specific
+information. To utilize this functionality, client code must subclass
+\texttt{ClientInfo} and override \texttt{ClientInfo * clone() const}.
+
+Once done, client information can be attached or retrieved using the
+following two functions (both members of \texttt{Nwa}):
+\begin{functionlist}
+  \functionDefFirst{ref\_ptr<ClientInfo>}{Nwa::getClientInfo}{State st}{const}
+    Returns the client-specific information associated with
+    the given state, \texttt{st}.
+
+  \functionDefFirst{void}{Nwa::setClientInfo}{State st, ref\_ptr<ClientInfo> ci}{}
+    Sets the client-specific information, \texttt{ci},
+    associated with the given state, \texttt{st}. \\
+\end{functionlist}
+Client information is tracked through the use of \texttt{ref\_ptr}s, so the
+programmer must consider the standard aliasing and lifetime considerations
+imposed by using smart pointers. (\texttt{ClientInfo} supplies the
+\texttt{count} field needed by \texttt{ref\_ptr}.) Operations that clone
+client information, such as copying
+an NWA, can also result in changes in aliasing:
+if the client information for states $p$ and $q$ are aliased in NWA $N$ that
+is then copied to NWA $N'$, the ``copies'' of $p$ and $q$ in $N'$ will have
+separate copies of the client information.
+
+\vspace{\baselineskip}
+In addition, you may wish to subclass \texttt{Nwa} itself. There are several
+virtual helper functions that are called during intersection and
+determinization to compute the client info for the resulting automaton; these
+can be overriden to customize the behavior. (This design is an instance
+of the ``template method'' design pattern.)
+
+The list of these helper methods is:
+\begin{itemize}
+  \item \texttt{intersectClientInfoInternal}
+  \item \texttt{intersectClientInfoCall}
+  \item \texttt{intersectClientInfoReturn}
+  \item \texttt{mergeClientInfo}
+  \item \texttt{mergeClientInfoInternal}
+  \item \texttt{mergeClientInfoCall}
+  \item \texttt{mergeClientInfoReturn}
+\end{itemize}
+(The first three are used by intersection and the remaining four by
+determinization.) In addition, \texttt{stateIntersect} and
+\texttt{transitionIntersect} can further customize the behavior of
+intersection, including computation of client
+information. \sectrefs{Intersection}{Determinize} have more information on
+intersection and determinization, and discuss these functions further.
+
+
+\begin{comment}
+
+\subsection{The following are more functions that don't fit into the above categories}
+
+\begin{functionlist}
+  \functionDef{void}{Nwa::duplicateState}{Key orig, Key dup}{}
+
+    Duplicates all the transitions containing the state \texttt{orig} and
+    adds the transitions to the NWA with \texttt{orig} replaced by
+    \texttt{dup}.  Self-loops are duplicated by adding a transition for all
+    possible combinations of some occurrence of \texttt{orig} replaced by
+    \texttt{dup}, i.e., if $(\texttt{orig},a,\texttt{orig})$ is an internal
+    (or call) transition, then the transitions
+    $(\texttt{dup},a,\texttt{dup})$, $(\texttt{dup},a,\texttt{orig})$, and
+    $(\texttt{orig},a,\texttt{dup})$ are added and if
+    $(\texttt{orig},\texttt{orig},a,\texttt{orig})$ is a return transition,
+    then the transitions $(\texttt{dup},\texttt{dup},a,\texttt{dup})$,
+    $(\texttt{dup},\texttt{dup},a,\texttt{orig})$,
+    $(\texttt{orig},\texttt{dup},a,\texttt{dup})$,
+    $(\texttt{orig},\texttt{dup},a,\texttt{orig})$,
+    $(\texttt{dup},\texttt{orig},a,\texttt{dup})$,
+    $(\texttt{dup},\texttt{orig},a,\texttt{orig})$, and
+    $(\texttt{orig},\texttt{orig},a,\texttt{dup})$ are added.
+
+  \functionDef{void}{Nwa::duplicateStateOutgoing}{Key orig, Key dup}{}
+
+    Duplicates all the transitions originating from \texttt{orig} and adds
+    the transitions to the NWA with \texttt{orig} replaced by \texttt{dup}.
+    Self-loops are duplicated by adding a transition for all possible
+    combinations of some occurrence of \texttt{orig} replaced by \texttt{dup}
+    while maintaining that the transitions are outgoing from \texttt{dup},
+    i.e., if $(\texttt{orig},a,\texttt{orig})$ is an internal (or call)
+    transition, then the transitions $(\texttt{dup},a,\texttt{dup})$ and
+    $(\texttt{dup},a,\texttt{orig})$ are added and if
+    $(\texttt{orig},\texttt{orig},a,\texttt{orig})$ is a return transition,
+    then the transitions $(\texttt{dup},\texttt{dup},a,\texttt{dup})$,
+    $(\texttt{dup},\texttt{dup},a,\texttt{orig})$,
+    $(\texttt{dup},\texttt{orig},a,\texttt{dup})$, and
+    $(\texttt{dup},\texttt{orig},a,\texttt{orig})$ are added.
+
+  \functionDef{void}{Nwa::realizeImplicitTrans}{State stuck}{}
+
+    Makes the transition relation ``at least total.''
+    For any source state and symbol pair that does not have at least one
+    transition, adds a transition to \texttt{stuck}. It does the same for
+    call transitions and return transitions (with an additional ``for each
+    call predecessor'' for returns).
+
+    Note that if the machine was nondeterministic, it will still be
+    nondeterministic after this call.
+
+\end{functionlist}
+
+\end{comment}

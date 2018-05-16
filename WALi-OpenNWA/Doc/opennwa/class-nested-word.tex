@@ -1,0 +1,51 @@
+\section{The \texttt{NestedWord} class}
+\label{Se:class-nested-word}
+
+The class \texttt{opennwa::NestedWord} provides support for
+building and iterating over nested words; currently there
+is no support for modifying them (other than appending).
+
+The representation used by this class is closer to that of a word in a
+visibly-pushdown language~\cite{JACM:AM2009}. It holds the linear contents of
+a word, but does not store the nesting relation explicitly. Instead, each
+position in the word is annotated with whether it is an internal, call, or
+return position. The nesting relation is induced by the matchings between
+calls and returns.
+
+A position in a word is represented by the (nested) structure
+\texttt{NestedWord::Position}. \texttt{Position} itself declares an
+enumeration \texttt{Type}, which has the possible values \texttt{CallType},
+\texttt{InternalType}, or \texttt{ReturnType}.
+A \texttt{Position} object has two (public) fields: \texttt{Symbol symbol}
+and \texttt{Position::Type type}; these hold the symbol at that position and
+the type of the position.
+
+
+The \texttt{NestedWord} class has just seven functions:
+\begin{functionlist}
+  \functionDefEarly{void}{NestedWord::appendInternal}{Symbol s}{}
+  \functionDefEarly{void}{NestedWord::appendCall}{Symbol s}{}
+  \functionDef{void}{NestedWord::appendReturn}{Symbol s}{}
+    These append the symbol \texttt{s} to the linear word, and annotate that
+    position as an internal, call, or return position, respectively.
+
+  \functionDefFirst{void}{NestedWord::append}{Position p}{}
+    Appends \texttt{p} to the word.
+
+  \functionDefFirst{size\_t}{NestedWord::size}{}{const}
+    Returns the length of the word.
+
+  \functionDefFirstEarly{NestedWord::const\_iterator}{NestedWord::begin}{}{const}
+  \functionDef{NestedWord::const\_iterator}{NestedWord::end}{}{const}
+    These return an iterator to the start or end
+    of the nested word. The type returned by dereferencing these iterators is
+    a \texttt{Position} object. (There is no non-const version of these
+    functions.)
+\end{functionlist}
+
+The only operation the library currently supports on
+\texttt{NestedWord}s, besides building them, is checking whether a
+nested word is in an NWA's language. This is done by
+the function \texttt{opennwa::query::languageContains(\mbox{Nwa const \&}, \mbox{NestedWord const \&})}; see
+\sectref{query-language}.
+

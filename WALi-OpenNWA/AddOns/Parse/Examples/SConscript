@@ -1,0 +1,64 @@
+## ##########################
+## Build Example parser
+import os,os.path
+
+Import('Debug')
+Import('WaliDir')
+Import('LibInstallDir')
+Import('ProgEnv')
+Import('MkStatic')
+Import('XercesDir')
+
+XercesPath = os.path.join(WaliDir, 'AddOns', 'Parse', 'ThirdParty', XercesDir)
+
+import platform
+if platform.system() == 'Windows':
+   xerces_lib_name = 'xerces-c_3.lib'
+else:
+   xerces_lib_name = '${LIBPREFIX}xerces-c${LIBSUFFIX}'
+
+StaticLibs = []
+Libs       = [ 'wali', 'waliparse', 'xerces-c', ] 
+LibPath    = [ LibInstallDir ]
+
+if MkStatic:
+  StaticLibs = [
+    os.path.join(LibInstallDir,'${LIBPREFIX}waliparse${LIBSUFFIX}'),
+    os.path.join(LibInstallDir,'${LIBPREFIX}wali${LIBSUFFIX}'),
+    ]
+  Libs = [xerces_lib_name]
+  LibPath = []
+
+	
+## ###############################
+## Environment
+env = ProgEnv.Clone()
+env.Append(CPPPATH=[os.path.join(WaliDir, 'AddOns', 'Parse', 'Source')])
+env.Append(CPPPATH=[os.path.join(XercesPath, 'include')])
+
+env.Replace(LIBS=Libs)
+env.Replace(LIBPATH=LibPath)
+
+env['WARNING_FLAGS'] = env['WARNING_FLAGS'].replace('-Wundef', '')
+env['WARNING_FLAGS'] = env['WARNING_FLAGS'].replace('-Wshadow', '')
+
+
+# Used to record the tests that are built
+built = []
+
+# Reach weight domain example
+ReachFiles= Split("""
+Reach/ExMain.cpp
+Reach/Reach.cpp
+""")
+
+StaticLibs = [env.File(l) for l in StaticLibs]
+env.Append(LIBS=StaticLibs)
+env.Append(LIBPATH=LibInstallDir)
+Reach = env.Program('ExMain',ReachFiles)
+
+
+built = Reach
+
+Return('built')
+

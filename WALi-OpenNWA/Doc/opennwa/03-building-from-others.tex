@@ -1,0 +1,820 @@
+\section{Building NWAs from other NWAs (namespace \texttt{opennwa::construct})}
+\label{Se:Building NWAs}
+
+The library provides functions for performing automata-theoretic operations upon
+NWAs. The supported operations are union, intersection, concatenation,
+reversal, Kleene star, complement, and determinization.
+
+The library supports two interfaces to each of these operations. In one, the
+operation allocates an NWA with \texttt{new}, performs the construction, and
+returns a \texttt{NwaRefPtr} to the result.  In the other, the operation takes
+a reference to an NWA, clears it, and constructs the result in-place. The
+first form is usually more convenient to use, and creates a mini language for
+set expressions; the second form makes it possible to store the result of an
+operation in a subclass of \texttt{Nwa}, or an existing \texttt{Nwa} object.
+
+Each of these functions is in the namespace \texttt{opennwa::construct}:
+
+\begin{functionlist}
+
+  \functionDefEarly{NwaRefPtr}{unionNwa}{Nwa const \& a, Nwa const \& b}{}
+  \functionDef{void}{unionNwa}{Nwa \& out, Nwa const \& a, Nwa const \& b}{}
+    Computes the union of the NWAs \texttt{a} and \texttt{b},
+    either returning the result or storing it in \texttt{out}.
+    See Section
+    \ref{Se:Union}. (This function is called \texttt{unionNwa} instead of
+    \texttt{union} because the latter is a C++ keyword.) The two NWAs must not
+    have any states in common, and the output will be nondeterministic even
+    if both input NWAs are deterministic. The running time\footnote{We count
+      state lookups, additions, etc.\ as constant time even though they are
+      actually logarithmic, and occasionally linear.} is
+    $O(|Q^a|+|Q^b|+|\delta^a|+|\delta^b|)$.
+
+  \functionDefFirstEarly{NwaRefPtr}{intersect}{Nwa const \& a, Nwa const \& b}{}
+  \functionDef{void}{intersect}{Nwa \& out, Nwa const \& a, Nwa const \& b}{}
+    Computes the intersection of the NWAs \texttt{a} and \texttt{b},
+    either returning the result or storing it in \texttt{out}.
+    See Section \ref{Se:Intersection}. If both input NWAs are deterministic,
+    the output will be deterministic. The worst-case running time is
+    $O(|Q^a| |Q^b| d_a d_b)$, where $d_a$ is the maximum out-degree
+    of a state in \texttt{a} and $d_b$ is the maximum out-degree of a state
+    in \texttt{b}.
+
+  \functionDefFirstEarly{NwaRefPtr}{concat}{Nwa const \& left, Nwa const \& right}{}
+  \functionDef{void}{concat}{Nwa \& out, Nwa const \& left, Nwa const \& right}{}
+    Computes the concatenation of the NWAs \texttt{left} and
+    \texttt{right}, either returning the result or storing it in
+    \texttt{out}.
+    See Section \ref{Se:Concatenation}. The output automaton will be
+    nondeterministic. The running time is
+    $O(|Q^a|+|Q^b|+|\delta^a|+|\delta^b|+|Q^a||\delta_r^b|)$.
+
+  \functionDefFirstEarly{NwaRefPtr}{star}{Nwa const \& orig}{}
+  \functionDef{void}{star}{Nwa \& out, Nwa const \& orig}{}
+    Computes the Kleene star of the NWA \texttt{orig}, either
+    returning the result or storing it in \texttt{out}. See Section
+    \ref{Se:Star}. The output automaton will be nondeterministic. The
+    running time is $O(|Q|+|\delta|+|Q_0||Q_f||\delta_c|)$.
+
+  \functionDefFirstEarly{NwaRefPtr}{reverse}{Nwa const \& orig}{}
+  \functionDef{void}{reverse}{Nwa \& out, Nwa const \& orig}{}
+    Computes the NWA that accepts the reverse of each nested word
+    accepted by the NWA \texttt{orig}, either returning the result or
+    storing it in \texttt{out}. See Section \ref{Se:Reverse}. The running
+    time is $O(|Q|+|\delta|)$.
+
+  \functionDefFirstEarly{NwaRefPtr}{determinize}{Nwa const \& orig}{}
+  \functionDef{NwaRefPtr}{determinize}{Nwa \& out, Nwa const \& orig}{}
+    Computes a determinization of \texttt{orig}, either returning the
+    result or storing it in \texttt{out}.
+    See Section \ref{Se:Determinize}. The worst-case running time for this
+    algorithm is at least $O({|Q|^3} \cdot2^{|Q|^2})$.
+
+\clearpage
+  \functionDefFirstEarly{NwaRefPtr}{complement}{Nwa const \& orig}{}
+  \functionDef{void}{complement}{Nwa \& out, Nwa const \& orig}{}
+    Computes the complement of the determinization of \texttt{orig},
+    either returning the result or storing it in \texttt{out}.
+    See Section
+    \ref{Se:Complement}. %For complementing the set of final states to work
+    %correctly, two things must hold: \texttt{orig} must be deterministic and
+    %the transition functions must be total. (That is, for a given state $q$
+    %and symbol $\sigma$, there must be exactly one internal transition $(q,
+    %5\sigma, q') \in\delta_i$, exactly one call transition $(q, \sigma,
+    %q')\in\delta_c$, and exactly one return transition $(q, p, \sigma,
+    %q')\in\delta_r$ for each state $p$.)
+    \texttt{complement()} determinizes \texttt{orig}, so its worst-case
+    running time is also at least $O({|Q|^3} \cdot2^{|Q|^2})$.
+
+    %\vspace{0.5\baselineskip}
+    %If \texttt{determinize} is \texttt{true}, it will
+    %automatically determinize the input NWA before complementation, which
+    %also guarantees the input machine will be total. If you
+    %know that \texttt{orig} is already deterministic and total, you can set
+    %\texttt{determinize} to
+    %\texttt{false} to avoid this step. (Complementing a nondeterministic or
+    %non-total NWA can easily lead to an incorrect result.) If
+    %\texttt{determinize} is \texttt{true}, the worst-case running time is the
+    %same as for the \texttt{determinize} function (roughly
+    %$O(2^{|Q|^2})$). If \texttt{determinize} is \texttt{false}, the running
+    %time is $O(|Q|+|\delta|)$.
+
+\end{functionlist}
+
+As mentioned above, these functions create a small language of set
+expressions. For instance, to compute an automaton \texttt{M} whose language
+is $\texttt{A} \cup (\texttt{B} \cap \texttt{C})*$ (where \texttt{A},
+\texttt{B}, and \texttt{C} are \texttt{NwaRefPtr}s), one can write
+\begin{center}
+  \texttt{NwaRefPtr M = unionNwa(*A, *star(*intersect(*B, *C)))}
+\end{center}
+
+
+\begin{figure}[tb]
+  \centering
+  \begin{minipage}{0.3\textwidth}
+    \centering
+    \nwaimage[.6]{Figures/figure-1}
+    \caption{An example NWA.}
+    \label{Fi:Example1}
+  \end{minipage}
+  \hspace{0.025\textwidth}
+  \begin{minipage}{0.3\textwidth}
+    \centering
+    \nwaimage[0.49]{Figures/union-other}
+    \caption{A second example NWA.}
+    \label{Fi:Union1}
+  \end{minipage}
+  \hspace{0.025\textwidth}
+  \begin{minipage}{0.3\textwidth}
+    \centering
+    \nwaimage[0.8]{Figures/union-result}
+    \caption{The NWA resulting from the union of the NWA in Figure
+      \ref{Fi:Example1} and the NWA in Figure \ref{Fi:Union1}. Note that there
+      are two initial states.}
+    \label{Fi:Union2}
+  \end{minipage}
+\end{figure}
+
+
+
+
+\subsection{Union}
+\label{Se:Union}
+The union of two NWAs is constructed by taking the union of each of the
+components of the NWAs. (In
+particular, it does \textsl{not} do a cross-product construction, and will
+\textsl{always} produce a nondeterministic automaton as a result as long as
+both machines have at least one initial state.)
+
+Formally, the union of NWAs $N = (Q_N, \Sigma_N, Q_{0,N}, \delta_N, F_N)$
+and $M = (Q_M, \Sigma_M,$ $Q_{0,M}, \delta_M, F_M)$ is
+$N \cup M = (Q_N \cup Q_M, \Sigma_N \cup \Sigma_M, Q_{0,N} \cup
+   Q_{0,M}, \delta_N \cup \delta_M, F_N \cup F_M)$.
+
+As an example, \figref{Union2} illustrates the union of \figref{Example1} and
+\figref{Union1}.
+
+
+The state sets of the NWAs must not overlap,
+i.e., $Q_1 \cap Q_2 = \emptyset$. \textsl{Client code should not rely on
+  this condition being checked} or any particular behavior occurring if it
+does not hold.
+
+Client information is copied directly from the original NWAs using
+\texttt{ClientInfo::clone()}.
+
+
+\subsection{Intersection}
+\label{Se:Intersection}
+
+The intersection of two NWAs is computed in the standard cross-product
+fashion, using a worklist algorithm to only compute those states that
+are reachable.
+
+The algorithm traverses the original NWAs starting at
+the initial states and incrementally adds transitions for each pair of
+``intersectable'' transitions that are encountered. By default, transitions
+are intersectable when the transitions are the same kind (internal, call,
+or return) and the symbols on the edge are identical or one is wild.
+
+For example, \figref{Intersect1} shows the intersection of \figref{Example1} and
+\figref{Intersect1}, and \figref{Intersect4} shows the intersection of the
+two NWAs in \figref{Intersect3}.
+
+ 
+\begin{figure}[tp]
+  \centering
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \nwaimage[0.45]{Figures/intersection-simple-other}
+    \caption{Simple NWA to intersect with the NWA in Figure \ref{Fi:Example1}.}
+    \label{Fi:Intersect1}
+  \end{minipage}\hspace{0.2cm}
+  \begin{minipage}{0.49\textwidth}
+    \centering
+    \nwaimage{Figures/intersection-simple-result}
+    \caption{The NWA resulting from the intersection of the NWA in Figure
+      \ref{Fi:Example1} and the NWA in Figure \ref{Fi:Intersect1}. Note that
+      because each of the input NWAs only accepts a single word and those
+      words are different, the language of the intersection is empty. The NWA
+    built up by \texttt{intersect()} got as far as it
+    could. \texttt{(key\#2,3)} is the pair of states \texttt{(start,start)}
+    from the two input automata.}
+    \label{Fi:Intersect2}
+  \end{minipage}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+    \adjustbox{width=\textwidth,height=\textheight,keepaspectratio=true}{
+    \nwaimage{Figures/intersection-complex-first}
+    \nwaimage{Figures/intersection-complex-second}}
+  \caption{Two complex NWAs to intersect.}
+  \label{Fi:Intersect3}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+    \nwaimage[.45]{Figures/intersection-complex-result}
+  \caption{The NWA resulting from the intersection of the NWAs in Figure \ref{Fi:Intersect3}.}
+  \label{Fi:Intersect4}
+\end{figure}
+
+\antistupidfloats
+
+It is possible to customize what symbols are considered equivalent, or
+otherwise impose constraints on what transitions can be intersected, by
+overriding the \texttt{transitionIntersect} function in a subclass of
+\texttt{Nwa}. In addition, it is possible to impose additional constraints on
+what states can be combined by overriding \texttt{stateIntersect}. Both
+functions also produce the result of the intersection:
+\texttt{transitionIntersect} produces the symbol that will be used on the
+resulting edge, and \texttt{stateIntersect} produces the state that will be
+used as the target.
+
+The default behavior of
+\texttt{transitionIntersect} is that two transitions are intersectable if
+neither symbol is epsilon and either the symbols are the same or at least one of
+the symbols is a wild. (Epsilon transitions are dealt with in
+\texttt{intersect()} itself. If you override \texttt{transitionIntersect}, it
+should return \texttt{false} if either input is epsilon.)
+
+The default behavior of \texttt{stateIntersect} is that any two
+states can be combined, the resulting state is labeled with a
+key that is uniquely generated from the pair of the keys of
+the two states under consideration, and the client information associated
+with the resulting state is \texttt{null}.
+
+
+Client information is initially generated by the helper method \texttt{stateIntersect},
+but can be altered through the use of the helper methods
+\texttt{intersectClientInfoInternal}, \texttt{intersectClientInfoCall}, and
+\texttt{intersect\-Client\-InfoReturn}, which are invoked by
+\texttt{intersect()} as transitions of the three different kinds involving the
+associated state are added.  The default behavior of these three functions is
+to perform no changes to the \texttt{ClientInfo}.  These methods can be
+overridden in subclasses to specify alternative behaviors.
+
+\goodbreak
+The following operations are virtual functions in class \texttt{Nwa} and are intended
+to be overridden to customize behavior:
+
+\begin{functionlist}
+  \functionDefNoCloseParen{bool}{stateIntersect}{%
+                  \parbox[t]{4in}
+                              {Nwa const \& first, State state1,\\ 
+                               Nwa const \& second, State state2,\\
+                               State \& resSt, ref\_ptr<ClientInfo> \& resCI)}}
+    Determines whether the given states can be combined and,
+    if so, creates the combined state. If the two states are incompatable,
+    returns \texttt{false}. If the two states are compatable, it computes the
+    key of the combined state (storing it in \texttt{resSt} and the client
+    information (storing it in \texttt{resCI}), then returns \texttt{true}.
+
+  \functionDefFirstNoCloseParen{bool}{transitionIntersect}{%
+                  \parbox[t]{4in}
+                              {Nwa const \& first, Symbol sym1,\\
+                               Nwa const \& second, Symbol sym2,\\ 
+                               Symbol \& resSym )}}
+    Determines whether the given symbols are considered to be equivalent for
+    the purposes of intersection. If so, it computes the symbol that should
+    be associated with the combined transition (storing it in
+    \texttt{resSym}) and returns true. If not, returns false.
+
+  \functionDefFirstEarlyNoCloseParen{void}{intersectClientInfoInternal}{%
+                  \parbox[t]{4in}
+                     {Nwa const \& first, State src1, State tgt1,\\
+                      Nwa const \& second, State src2, State tgt2,\\
+                      Symbol resSym, State resSt )}}
+    \nopagebreak
+  \functionDefEarlyNoCloseParen{void}{intersectClientInfoCall}{%
+                  \parbox[t]{4in}
+                      {Nwa const \& first ,State call1, State entry1,\\
+                       Nwa const \& second, State call2, State entry2,\\
+                       Symbol resSym, State resSt )}} \nopagebreak
+  \functionDefNoCloseParen{\small void}{\small intersectClientInfoReturn}{%
+                  \parbox[t]{4in}
+                      {\small Nwa const \& first, State exit1, State call1,State ret1,\\
+                       Nwa const \& second, State exit2,State call2, State ret2,\\
+                       Symbol resSym, State resSt )}}
+    Called after a transition of the corresponding type is added to the
+    automaton. It is intended to be used to
+    alter the client information associated with \texttt{resSt} given the
+    endpoints of the new transition.
+
+\end{functionlist}
+
+
+
+
+\subsection{Concatenation}
+\label{Se:Concatenation}
+
+The concatenation of two NWAs is constructed by taking the union of all
+states and transitions of the two automata, and adding
+internal epsilon transitions from each final state of the first NWA to each
+initial state of the second NWA.  In the resulting NWA, the initial states
+are the initial states from the first NWA, and the final states are the final
+states of the second NWA.
+
+However, the concatenation construction is a bit more complicated than just this,
+because we need to address the issue of an unbalanced-left
+word being concatenated with an unbalanced-right word.  (Recall the
+definition of what happens when an NWA reads a pending return: it is
+allowed to take a return transition where the call predecessor is an initial
+state of the automaton.) 
+
+To deal properly with the case where the first operand generates strings with
+pending calls and the second operand generates strings with pending returns,
+the
+transitions from the second automaton are augmented in the
+following manner. When computing the concatenation of \texttt{left} and
+\texttt{right}, for each transition $(q, p_0, a, q')
+\in\delta_r^{\texttt{right}}$ where $p_0 \in Q_0^\texttt{right}$ (these are
+transitions that \texttt{right} can take when reading a pending return) and
+each $p \in Q^\texttt{left}$, we add $(q, p, a, q')$ to $\delta_r$ of the
+result. (It is actually only necessary to add such a transition for states
+$p$ that either appear in the call position of a call transition in
+\texttt{left} or are in $Q_0^\texttt{left}$.)
+
+
+ % If the original NWAs are $(Q_1, \Sigma_1,
+%{Q_0}_1, \delta_1, {Q_f}_1)$ and $(Q_2, \Sigma_2, {Q_0}_2, \delta_2,
+%{Q_f}_2)$, then the resulting NWA is $(Q, \Sigma, Q_0, \delta, Q_f)$ where $Q
+%= Q_1 \cup Q_2$, $\Sigma = \Sigma_1 \cup \Sigma_2$, $Q_0 = {Q_0}_1$, $\delta
+%= \delta_1 \cup \delta_2 \cup \delta_\epsilon$ (where $\delta_\epsilon =
+%\{(q,\epsilon,q') | q \in {Q_f}_1, q' \in {Q_0}_2\}$, and $Q_f = {Q_f}_2$ .
+%The NWA resulting from the concatenation of the NWA in Figure
+%\ref{Fi:Example1} and the NWA shown in Figure \ref{Fi:Concat1} is shown in
+%Figure \ref{Fi:Concat2}.
+
+\begin{figure}[p]
+  \centering
+  \begin{minipage}{0.5\textwidth}
+    \begin{minipage}{\textwidth}
+      \centering
+      \nwaimage[1]{Figures/concat-other}
+      \caption{Simple NWA to concatenate onto the NWA in Figure \ref{Fi:Example1}.}
+      \label{Fi:Concat1}
+    \end{minipage}
+
+    \vspace{2\baselineskip}
+    \begin{minipage}{0.8\textwidth}
+      \centering
+      \nwaimage[0.55]{Figures/reverse-of-figure-1}
+      \caption{The NWA resulting from performing reverse on the NWA in Figure \ref{Fi:Example1}.}
+      \label{Fi:Reverse1}
+    \end{minipage}
+  \end{minipage}
+  \begin{minipage}{0.49\textwidth}
+    \centering
+    \nwaimage[0.75]{Figures/concat-result}
+    \caption{The NWA resulting from the concatenation of the NWA in Figure
+      \ref{Fi:Example1} with the NWA in Figure \ref{Fi:Concat1}.}
+    \label{Fi:Concat2}
+  \end{minipage}
+\end{figure}
+
+\antistupidfloats
+
+
+
+The state sets of the NWAs must not overlap,
+i.e., $Q_1 \cap Q_2 = \emptyset$. \textsl{Client code should not rely on
+  this condition being checked.}
+
+Client information is copied directly from the original NWAs using
+\texttt{ClientInfo::clone()}.
+
+\figref{Concat2} shows the result of concatenating \figref{Example1} and
+\figref{Concat1}.
+
+\subsection{Kleene star}
+\label{Se:Star}
+
+Like concatenation, Kleene-star is complicated in the case of NWAs because of
+the ability to have unbalanced words in the automaton's
+language. Relative to standard FAs, in the concatenation construction we only needed
+to add extra transitions; in this construction, we must add additional states
+as well.
+
+The NWA resulting from performing Kleene-Star on the NWA shown in
+\figref{Star1} is shown in \figref{Star2}.
+
+The construction presented in \cite{JACM:AM2009} has a minor error. The error is
+analogous to not adding a distinguished start state in the traditional
+Thompson construction,\footnote{The initial state of the automaton $A^*$
+  must accept, because $\epsilon$ is in $L^*$; and because of this property it is
+  incorrect to merely add epsilon transitions from the old final states to
+  the old initial states. If you do this and there is a cycle from the
+  initial state back to itself (for example, a self-loop on the initial
+  state), the word corresponding to that path would be accepted even though
+  it should not be.} and in
+fact can be exhibited using the same example (it is not necessary to use NWA
+calls or returns). Alur confirmed that our interpretation of the construction
+in \cite{JACM:AM2009} is
+correct~\cite{AlurNwaStarBroken}. Below, we present
+a version that uses $\epsilon$-transitions, and thus it looks a bit
+different from the version in \cite{JACM:AM2009}.
+
+When computing $R = A^*$ for some
+NWA $A$, the resulting NWA has two ``copies'' of $A$. These are denoted by
+primed and unprimed version of states from $A$ in the definition below. 
+
+\begin{figure}[p]
+  \centering
+    \nwaimage[.4]{Figures/star-simple}
+  \caption{An NWA on which to perform Kleene-Star.}
+  \label{Fi:Star1}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+    \nwaimage[1.1]{Figures/star-simple-result}
+  \caption{The NWA resulting from performing Kleene-Star on the NWA in Figure \ref{Fi:Star1}.}
+  \label{Fi:Star2}
+\end{figure}
+\antistupidfloats
+
+
+Suppose that $R$ is reading a word $w=w_1w_2\cdots w_n$, where each $w_i \in
+L(A)$. $R$ begins in a start state of $A'$. Henceforth it maintains the
+following invariant on the state that $R$ is in with respect to the portion
+of $w$ read so far: if the next symbol $\sigma$ is in a return position, then
+that
+symbol is a \emph{pending} return in the current $w_i$ iff $R$ is in the $A'$
+portion, i.e., if the current state is primed. (Note that this return only
+needs to be
+pending in the current $w_i$. In the full string $w$, $\sigma$ may match a
+call in an earlier $w_j$, or it may be pending in the whole string.)
+
+Internal transitions thus keep $R$ in the same copy of $A$, and call
+transitions always take $R$ to the unprimed copy of $A$ (because if it then
+reads a return, the return will match that call). Return transitions can
+target either copy of $A$: if the call predecessor is unprimed, then the
+target will be unprimed; if the call predecessor is primed, then the target
+will be primed.
+
+The description above describes $R$'s operation under ``normal''
+conditions. If $R$ is in a final state (either primed or unprimed) of the
+automaton $A$, it is also allowed to guess that it should ``restart'' by taking
+an epsilon transition to a distinguished start and final state $q_0$. This
+guess is correct if it just read the
+last character in $w_i$ (making the next character the first one in
+$w_{i+1}$). Note that $q_0$ only has transitions to
+the $A'$ portion of $R$, maintaining the invariant.
+
+The reason for the two copies of $A$ comes into play when $R$ reads a return
+$\sigma$ while in the $A'$ portion. By the invariant, $\sigma$ is pending in the
+current $w_i$. In the original automaton $A$, the transitions that the
+machine can use are return transitions $(q,r,\sigma,p)$ where the call predecessor
+$r$ is in $Q_0$. We need to make sure that $R$ can take those same
+transitions. There are two cases we need to consider:
+\begin{enumerate}
+\item For the cases where
+$\sigma$ is pending in the whole string $w$, we need to have a version of the
+return transition with $q_0$ in the call-predecessor position, so we add $(q',
+q_0, \sigma, p')$.
+\item For the cases where $\sigma$ is matched with a call in some
+earlier $w_j$, it does not matter what state the machine was in before that
+call; thus we add $(q', s, \sigma, p')$ for each state $s$ in $Q \cup Q'$.
+\end{enumerate}
+\vspace{0.25\baselineskip}
+
+``Normal'' operation corresponds to the transitions introduced by the
+\textsc{Internal}, \textsc{Call}, and \textsc{Locally-Matched-Return}
+inference rules given below. The source states of both transitions added by
+\textsc{Locally-Matched-Return} are unprimed, because if the current symbol
+is a return that matches a call in the same $w_i$, $R$ will be in
+the $A$ portion by the invariant.
+The \textsc{Restart} rule allows $R$ to restart, and the
+\textsc{Start} rule allows $R$ to get from $q_0$ to the $A'$ portion; these
+transitions target the $A'$ portion because there have been no calls read in
+the current $w_i$, and thus a return symbol would be pending.
+The \textsc{Globally-Pending-Return} rule addresses the situation where the
+current symbol is a return that is pending in the whole string $w$. (This is
+the first case in the previous paragraph.) The \textsc{Locally-Pending-Return} rule
+addresses the situation where the current symbol is a return that is pending
+in the current $w_i$ but matches a call from a previous $w_j$.
+
+
+Formally, if the original NWA is $(Q, \Sigma, Q_0, \delta, Q_f)$,
+then the result of performing Kleene-Star on that NWA is $(Q^*, \Sigma,
+Q_0^*, \delta^*, Q_f^*)$. The sets of states are defined by $Q^* = Q \cup
+Q' \cup \{q_0\}$ (with $Q' = \{q'\, |\, q \in Q\}$ and $q_0 \not \in Q$),
+and  $Q_0^* = Q_f^* = \{q_0\}$.
+The transitions in $\delta^*$ are defined by the following rules:
+
+\begin{mathpar}
+{\inferrule*[left=\textsc{Internal}]
+             {(q,\sigma,p) \in \delta_i }
+  { (q,\sigma,p) \in  \delta_i^* \\ (q',\sigma,p') \in \delta_i^*}
+}
+\and
+{\inferrule*[right=\textsc{Call}]
+           { (q,\sigma,p) \in \delta_c  }
+  { (q,\sigma,p) \in  \delta_c^* \\ (q',\sigma,p) \in \delta_c^*   }
+}
+\and
+{\inferrule*[left=\textsc{Locally-Matched-Return}]
+              { (q,r,\sigma,p) \in \delta_r }
+  {(q,r,\sigma,p) \in  \delta_r^* \\ (q,r',\sigma,p') \in \delta_r^* }
+}
+\\
+\and
+{\inferrule*[left=\textsc{Start}]
+  { q \in Q_0 }
+  {(q_0, \epsilon, q') \in \delta_i^*}
+}
+\and
+{\inferrule*[right=\textsc{Retart}]
+  { q \in Q_f }
+  {(q, \epsilon, q_0) \in \delta_i^* \\ (q', \epsilon, q_0) \in \delta_i^* }
+}
+\and
+{\inferrule*[left=\textsc{Globally-Pending-Return}]
+  { (q,r,\sigma,p) \in \delta_r \\ r \in Q_0 }
+  {(q',q_0,\sigma,p') \in  \delta_r^* }
+}
+\and
+{\inferrule*[left=\textsc{Locally-Pending-Return}]
+  { (q,r,\sigma,p) \in \delta_r \\ r \in Q_0 \\ s \in Q \cup Q' }
+  {(q',s,\sigma,p') \in \delta_r^* }
+}
+\end{mathpar}
+
+
+Client information is copied directly from the original NWA (using
+\texttt{ClientInfo::clone()}) such that for each $q \in Q$, $q$
+and $q'$ have (different copies of) the same client information.
+
+\emph{Note:} The key for state $q'$ is generated from the key for state $q$
+using the expression \texttt{getKey(q, getKey("prime"))}. The input automaton
+to the Kleene star function must not already contain both $q$ and $q'$ for
+any $q$.
+
+%Consider the slightly more complex example of computing the Kleene-Star of the NWA shown in Figure \ref{Fi:Star3}.  The resulting NWA is shown in Figure \ref{Fi:Star4}.
+
+%\begin{figure}[htbp]
+%  \centering
+%    \includegraphics[angle=270,width=10cm]{Figures/Figure13.pdf}
+%  \caption{Complex NWA on which to perform Kleene-Star.}
+%  \label{Fi:Star3}
+%\end{figure}
+
+%\begin{figure}[htbp]
+%  \centering
+%    \includegraphics[angle=270,width=12cm]{Figures/Figure14.pdf}
+%  \caption{The NWA resulting from performing Kleene-Star on the NWA in Figure \ref{Fi:Star3}.}
+%  \label{Fi:Star4}
+%\end{figure}
+
+\subsection{Reverse}
+\label{Se:Reverse}
+
+A nested word $n = (w, \rightsquigarrow)$ is reversed by reversing the linear
+word $w$ and exchanging calls and returns. Formally,
+$n^{rev} = (w^{rev}, \{(|w|+1-r, |w|+1-c) | (c,r)
+\in\rightsquigarrow\})$. (Pending calls and returns are handled by defining
+$|w|+1-(+\infty) = -\infty$ and $|w|+1-(-\infty) = +\infty$.) Roughly
+speaking, call transitions in $A$ correspond to return transitions in
+$A^{rev}$ and vice versa, and we reverse the direction of all transitions as
+in the standard FA construction. We describe the construction from the
+perspective of $A^{rev}$ --- that is, a ``call transition'' is a call
+transition in $A^{rev}$, and a ``call'' is a call in the reversed string.
+
+Perhaps unsurprisingly, pending returns pose a problem because the
+role of initial and final states are exchanged. Because of this complication,
+the algorithm for reversing an NWA has a similar flavor to that of the
+Kleene-star procedure. The automaton $A^{rev}$ has two ``copies'' of $A$
+(primed and unprimed), and maintains the same invariant as the Kleene-star
+construction: if
+the next symbol $\sigma$ is in a return position, then that symbol is a
+\emph{pending} return iff $A^{rev}$ is in the $A'$ portion.
+(For those familiar with the construction in \cite{JACM:AM2009}, ours is more
+complicated because the version in \cite{JACM:AM2009} will not work as stated
+with a weakly-hierarchical NWA.)
+
+If the original NWA is $(Q, \Sigma, Q_0, \delta, Q_f)$, then the result of
+reversing that NWA is $(Q \cup Q', \Sigma, Q_f', \delta^{rev}, Q_0)$ obtained using
+the following rules:
+
+\begin{mathpar}
+{\inferrule*[left=\textsc{Internal}]
+     { (p,\sigma,q) \in \delta_i  }
+  { (q,\sigma,p)  \in \delta^{rev}_i \\ (q',\sigma,p')  \in \delta^{rev}_i }
+} 
+\and
+{\inferrule*[left=\textsc{Call-Return}]
+       { (q_c,\sigma_c,q_e) \in  \delta_c \\ (q_x,\_\!\_\,,\sigma_r,q_r) \in \delta_r }
+  { (q_r, \sigma_r, q_x), (q_r', \sigma_r, q_x) \in \delta^{rev}_c \\
+    (q_e, q_r, \sigma_c, q_c), (q_e, q_r', \sigma_c, q_c') \in \delta^{rev}_c }
+}
+\and
+{\inferrule*[left=\textsc{Pending-Return}]
+       { (q_c,\sigma,q_e) \in  \delta_c \\ q_f \in Q_f }
+  { (q_e', q_f, \sigma, q_c') \in \delta^{rev}_R }
+}
+\end{mathpar}
+%The \textsc{Pending-Return} rule is the most perplexing one. The name
+%\textsc{Pending-Return} is written from the perspective of the reversed
+%automaton -- in other words, the reversed automaton will take a transition
+%added by this rule when it reads a pending return, and that pending return
+%would have been a pending call in the original automaton. However, $q_f \in
+%Q_f$ is written from the perspective of the original automaton: because
+%$q_f$ is a final state in the original it is an initial state in the
+%reversed automaton, and this is why the transition can be taken on a pending
+%return.
+
+
+The NWA resulting from performing reverse on the NWA shown in
+Figure \ref{Fi:Example1} is shown in Figure \ref{Fi:Reverse1}.
+ 
+
+Client
+information is copied directly from the original NWA using
+\texttt{ClientInfo::clone()}.
+
+\subsection{Determinize}
+\label{Se:Determinize}
+
+\begin{definition}
+An NWA, $(Q,\Sigma,Q_0,\delta,Q_f)$, is \textbf{deterministic} iff 
+
+\begin{enumerate} 
+
+\item $|Q_0| \leq 1$, 
+
+\item For all $q \in Q$, there is never a choice between reading $\sigma$ and
+  following a $\sigma$ transition or following a wild (\wild) transition:
+  \begin{itemize}
+    \item if $(q,\wild,q') \in \delta_i$ then $|\{q'|(q,\sigma,q') \in
+      \delta_i, {\sigma\neq@}\}| = 0$; \\ otherwise, for all $\sigma \in \Sigma - \{\wild\}$,
+      $|\{q'|(q,\sigma,q') \in \delta_i\}| \leq 1$,
+
+    \item if $(q,\wild,q') \in \delta_c$ then $ |\{q'|(q,\sigma,q') \in
+      \delta_c, {\sigma\neq@}\}| = 0$;\\
+      otherwise, for all $\sigma \in \Sigma - \{\wild\}$,
+      $|\{q'|(q,\sigma,q') \in \delta_c\}| \leq 1$, and
+
+    \item \mbox{for $q' \in Q$, if $(q,q',\wild,q'') \in \delta_r$ then
+      $|\{q''|(q,q',\sigma,q'') \in \delta_r, {\sigma\neq@}\}| = 0$;} \\
+      otherwise, for all
+      $\sigma \in \Sigma - \{\wild\}$, $|\{q''|(q,q',\sigma,q'') \in \delta_r\}|
+      \leq 1$,
+  \end{itemize}
+\item There are no $\epsilon$ transitions:
+ \begin{itemize}
+   \item for all $(q,\sigma,q') \in \delta_i, \sigma \neq \epsilon$,
+   \item for all $(q,\sigma,q') \in \delta_c, \sigma \neq \epsilon$, and
+   \item for all $(q,q',\sigma,q'') \in \delta_r, \sigma \neq \epsilon$.
+ \end{itemize}
+\end{enumerate}
+If an NWA is not deterministic, then it is \textbf{non-deterministic}.
+\end{definition}
+
+Determinizing an NWA operates like a
+generalization of the classical subset construction.  Instead of the states
+in the determinized NWA being subsets of states in the original NWA, states of the
+determinized NWA are sets of state pairs (i.e., binary relations on states)
+\cite{JACM:AM2009}.  To support determinization, the library provides a
+typedef of \texttt{std::set$<$pair$<$State, State$>>$} as 
+\texttt{Nwa::BinaryRelation}. See also \texttt{opennwa/RelationOps.hpp}.
+
+We present the algorithm we use for determinization in
+\appref{DeterminizeAlgorithm}.
+
+%There is very experimental support for using the BuDDY
+
+
+The result of determinizing the automaton in \figref{Det1} is shown in
+\figref{Det2}.
+
+\begin{figure}[p]
+  \centering
+    \nwaimage[0.45]{Figures/determinize}
+  \caption{Simple nondeterministic NWA.}
+  \label{Fi:Det1}
+\end{figure}
+
+
+\begin{figure}[p]
+  \centering
+    \nwaimage[.75]{Figures/determinize-result}
+    \caption{The NWA resulting from determinizing the NWA in Figure
+      \ref{Fi:Det1}. As mentioned in the text, states in the determinized NWA
+      are relations on the states in the original NWA. The state
+      $\varnothing$ has been removed from this diagram.} 
+  \label{Fi:Det2}
+\end{figure}
+
+
+Client information is generated through the use of the helper method
+\texttt{mergeClientInfo}, but can be altered through the use of the helper
+methods \texttt{mergeClientInfoInternal}, \texttt{mergeClientInfoCall}, and
+\texttt{mergeClientInfoReturn}, which are invoked by \texttt{determinize} as
+transitions of the three kinds involving the associated state are added.  The
+default behavior of \texttt{mergeClientInfo} is that the \texttt{ClientInfo}
+associated with the resulting state is \texttt{null}.  The default behavior
+of \texttt{mergeClientInfoInternal}, \texttt{mergeClientInfoCall}, and
+\texttt{mergeClientInfoReturn} is to make no changes to the the
+\texttt{ClientInfo}.  These methods can be overridden to specify alternative
+behaviors.  As determinization is performed, \texttt{mergeClientInfo} is
+called each time a new state is created.  Then, as each transition is added,
+\texttt{mergeClientInfoInternal}, \texttt{mergeClientInfoCall}, or
+\texttt{mergeClientInfoReturn} is called (depending on the type of transition
+being added) to update the \texttt{ClientInfo} associated with the target
+state of the transition being added.
+
+The following functions can be overridden in a subclass of \texttt{Nwa} to
+customize the behavior of determinization:
+\begin{functionlist}
+  \functionDefNoCloseParen{void}{mergeClientInfo}{%
+     \parbox[t]{4in}{
+       Nwa const \& nondet, BinaryRelation const \& binRel, \\
+       St resSt, ref\_ptr<ClientInfo>\& resCI)}}
+  Callback that gets called when a new state \texttt{resSt} (representing the
+  binary relation \texttt{binRel}) is added to the determinized automaton.
+  Intended to provide a hook for computing the client information that should
+  be associated with the new state; the client information should be set in
+  the output parameter \texttt{resCI} (i.e., \texttt{setClientInfo} should not
+  be called directly). \texttt{nondet} is the NWA being determinized.
+
+  \functionDefFirstEarlyNoCloseParen{void}{mergeClientInfoInternal}{%
+     \parbox[t]{4in}{
+       Nwa const \& nondet,\\
+       BinaryRelation const \& binRelSource,\\
+       BinaryRelation const \& binRelTarget,\\
+       State sourceSt, Symbol resSym, State resSt,\\
+       ref\_ptr<ClientInfo>\& resCI )}}
+  \functionDefEarlyNoCloseParen{void}{mergeClientInfoCall}{%
+     \parbox[t]{4in}{
+       Nwa const \& nondet,\\
+       BinaryRelation const \& binRelCall,\\
+       BinaryRelation const \& binRelEntry,\\
+       State callSt, Symbol resSym, State resSt,\\
+       ref\_ptr<ClientInfo>\& resCI )}}
+  \functionDefNoCloseParen{void}{mergeClientInfoReturn}{%
+     \parbox[t]{4in}{
+       Nwa const \& nondet,\\
+       BinaryRelation const \& binRelExit,\\
+       BinaryRelation const \& binRelCall,\\
+       BinaryRelation const \& binRelReturn,\\
+       State exitSt, State callSt, Symbol resSym,\\
+       State resSt, ref\_ptr<ClientInfo>\& resCI )}}
+    Callbacks that get called when a new transition is added to the given
+    automaton. The endpoints and their associated binary relations are
+    given.
+    Alters the client information associated with \texttt{resSt} given
+    information about the transition being added to the determinized
+    automaton.
+ \end{functionlist}
+
+%Consider the slightly more complex determinization of the NWA shown in Figure \ref{Fi:Det3}.  The resulting NWA is shown in Figure \ref{Fi:Det4}.
+
+%\begin{figure}[htbp]
+%  \centering
+%    \includegraphics[angle=270,width=12cm]{Figures/Figure18.pdf}
+%  \caption{Complex nondeterministic NWA.}
+%  \label{Fi:Det3}
+%\end{figure}
+
+%\begin{figure}[htbp]
+%  \centering
+%    \includegraphics[angle=270,width=12cm]{Figures/Figure19.pdf}
+%  \caption{The NWA resulting from determinizing the NWA in Figure \ref{Fi:Det3}.}
+%  \label{Fi:Det4}
+%\end{figure}
+
+\subsection{Complement}
+\label{Se:Complement}
+
+Complementing an NWA is performed by determinizing the automaton and then
+complementing the set of final states.
+\begin{comment}
+ In our implementation, an extra flag
+to \texttt{complement} controls whether the determinization step is to be
+performed, so it can be bypassed if you have \textsl{a priori} knowledge that
+the input NWA must already be deterministic.
+\end{comment}
+The result of
+complementing the NWA shown in Figure \ref{Fi:Det1} is
+shown in Figure \ref{Fi:Comp1}.
+
+Client information is computed during determinization as described in the
+previous section, then cloned during the complement step.
+
+\begin{figure}[h]
+  \centering
+    \nwaimage[1]{Figures/complement-of-determinize}
+  \caption{The complement of the NWA in Figure \ref{Fi:Det1} (the
+    determinization of which is shown in Figure \ref{Fi:Det2}).  We omit
+    transitions to the state $\{\}$; any action that does not appear in the
+    diagram goes to the state $\{\}$.
+  }
+  \label{Fi:Comp1}
+\end{figure}
+
+
+

@@ -1,0 +1,192 @@
+\section{The \texttt{opennwa::query} namespace}
+\label{Se:namespace-query}
+
+The \texttt{opennwa::query} namespace provides functions related to
+querying both the structure and language of an automaton.
+
+In this section, we first discuss how to retrieve information from an
+automaton's transitions (\sectref{query-transitions}) then move on to other
+queries about an automaton proper.
+Following that, we discuss queries about the
+\textsl{language} of an automaton (\sectref{query-language}).
+
+
+\subsection{Querying information about an automaton's transitions}
+\label{Se:query-transitions}
+The \texttt{opennwa::query} namespace provides a large number of functions
+for retrieving information about an \texttt{Nwa}'s transitions. The questions
+answered by these functions are of the form, e.g., ``what are all symbols that
+appear on a return transition where the call predecessor state is \texttt{s1}
+and the return site state is \texttt{s1}?''
+
+Functions return information either about all transitions or about
+transitions of a particular type (internal, call, or return). The names of
+these functions have regular patterns based on the information that is
+known and desired, but the rules for producing the names are perhaps not as
+simple as they could be. Because of this,
+Tabs.~\ref{Ta:query-all-transitions}--\ref{Ta:query-return-transitions} in \appref{Tables}
+provide a quick reference for the functions.
+
+The tables do not have \textsl{all} the information one needs to know in
+order to call them, and the entries use some shorthands; but they provide enough
+information for specifics to be
+looked up in the corresponding header or Doxygen documentation. The caption of each table
+gives the header that contains the functions listed. In the interest of
+space, the types of the function arguments are omitted, but they are likely to
+be what you expect. (The number of arguments is also always sufficient to
+uniquely identify the function because all types are just \texttt{wali::Key}s
+anyway.) Almost all functions return a \texttt{StateSet}, \texttt{SymbolSet},
+or a \texttt{std::set} of pairs of a state and a symbol. (Those that return a
+set of pairs are marked specially.)
+
+%To use the table to answer the question above, we first look at the table for
+%return transitions (\tableref{query-return-transitions}). We know the call
+%predecessor and return site, so we find the corresponding row in the table
+%(fourth from the bottom). We want to know all the symbols, so we look at the
+%symbol column. We see there are two choices: \texttt{getReturnSym\_CallRet}
+%and \texttt{getExits}. By looking at \texttt{returns.hpp} or Doxygen
+%documentation, we can see that the former returns a \texttt{SymbolSet}, which
+%is what we want. The latter returns
+%a \texttt{std::set$<$std::pair$<$State,Symbol$>>$}, which contains the
+%information we desire, but is likely to be less convenient to
+%use. (The \texttt{State} component of each pair is the exit site, which is
+%where the function name \texttt{getExits} comes from.)
+
+
+
+%\newcolumntype{x}[1]{p{#1}}
+
+
+\subsection{Querying other structural aspects of an automaton}
+\label{Se:query-automaton}
+
+The NWA library two additional functions for querying attributes
+of NWAs themselves. 
+These functions are declared in the header
+\texttt{opennwa/query/automaton.hpp} (and, of course, are defined in the
+namespace \texttt{opennwa::query}).
+
+\begin{functionlist}
+  \functionDef{bool}{isDeterministic}{Nwa const \& nwa}{}
+    Computes whether the given NWA is deterministic and returns the
+    result. \textit{Warning:} The result is not cached in the NWA, and
+    as presently-implemented, this function is very
+    inefficient. Improvements to this will come in a later version of
+    the library.
+
+  \functionDefFirst{bool}{statesOverlap}{Nwa const \& a, Nwa const \& b}{}
+    Computes whether the two NWAs share any states and returns the
+    result.
+
+  \functionDefFirstEarly{size\_t}{numCallSites}{Nwa const \& a}{}
+  \functionDefEarly{size\_t}{numEntrySites}{Nwa const \& a}{}
+  \functionDefEarly{size\_t}{numExitSites}{Nwa const \& a}{}
+  \functionDef{size\_t}{numReturnSites}{Nwa const \& a}{}
+    Returns the indicated statistic of the given automaton. A call site is a
+    state which is in the call position of a call transition, etc.
+\end{functionlist}
+
+
+\subsection{Querying properties of an automaton's language}
+\label{Se:query-language}
+
+The NWA library has several functions for querying
+properties of the language of an NWA (or how the languages of two NWAs
+relate), and it also supports
+the poststar and prestar queries used in program analysis.
+
+The following functions perform standard language-theoretic queries. They are
+located in namespace \texttt{opennwa::query} and are declared in
+\texttt{opennwa/query/language.hpp}:
+
+\begin{functionlist}
+  \functionDef{bool}{languageContains}{Nwa const \& nwa, NestedWord
+    const \& word}{}
+    Computes whether \texttt{word} is a member of
+    \texttt{nwa}'s language, and returns the result. (It simulates the
+    NWA in a nondeterministic fashion; the NWA is not determinized to answer
+    this query.) The worst-case running time is
+    $O(|\texttt{word}|\cdot w\log w)$, where $w$ is the ``width'' of
+    the nondeterminism of the NWA (i.e. the maximum number of
+    simultaneous configurations that are possible when reading \texttt{word})\footnote{We count
+      state lookups, additions, etc.\ as constant time even though they are
+      actually logarithmic, and occasionally linear.}.
+    
+  \functionDefFirst{bool}{languageIsEmpty}{Nwa const \& nwa}{}
+    Computes
+    whether the NWA's language is empty, and returns the result.
+
+  \functionDefFirst{ref\_ptr$<$NestedWord$>$}{getSomeAcceptedWord}{Nwa const \& nwa}{}
+    If \texttt{nwa}'s language is empty, returns \texttt{NULL}. Otherwise
+    returns an arbitrary word in $L(\texttt{nwa})$. (If \texttt{nwa} accepts
+    unbalanced words, the return value may be unbalanced.)
+
+  \functionDefFirst{ref\_ptr$<$NestedWord$>$}{getSomeShortestAcceptedWord}{Nwa const \& nwa}{}
+    If \texttt{nwa}'s language is empty, returns \texttt{NULL}. Otherwise
+    returns an arbitrary shortest word in $L(\texttt{nwa})$. (If \texttt{nwa} accepts
+    unbalanced words, the return value may be unbalanced.)
+
+  \functionDefFirst{bool}{languageSubsetEq}{Nwa const \& left, Nwa const \& right}{}
+    Computes whether $L(\texttt{left}) \subseteq L(\texttt{right})$
+    and returns the result. Since this procedure must determinize \texttt{right},
+    the worst-case running time is $O(2^{n^2}n^2m)$ where $n$ is the number of
+    states in \texttt{right} and $m$ is the number of states in \texttt{left}.
+
+  \functionDefFirst{bool}{languageEquals}{Nwa const \& a, Nwa const \& b}{}
+    Performs \texttt{languageSubsetEq(a, b) \&\&
+    languageSubsetEq(b, a)}. This determinizes both machines; the
+    worst-case running time is $O(2^{n^2}n^2m + 2^{m^2}m^2n)$.
+\end{functionlist}
+
+There are also functions for performing a poststar and prestar
+query on an NWA. These work by converting the NWA to a WPDS (see
+\sectref{Conversions} and, in particular, \sectref{NWAtoPDS}) using
+the function \texttt{NwaToWpdsCalls} then running the query on the PDS.
+
+Conceptually, the transition system queried by prestar and poststar is the space of
+configurations of the NWA. A configuration is a pair $\langle q, s\rangle$,
+where $q$ is the current state and $s$ is the stack of unmatched call
+sites. (More exactly, it is the stack of states the machine was in before
+reading a symbol in a call position that has not yet been matched.) In
+reality,  the transition system is the configuration space of the WPDS
+resulting from calling \texttt{NwaToWpdsCalls} (see
+\sectrefs{Conversions}{wpds-forwards-flow-stacking-calls}); that space is
+$\langle p, t\rangle$, where $p$ is a WPDS state and $t$ is the stack of
+unmatched call sites with the NWA's ``current'' state $q$ added on top.
+
+There are two variants of each function. One returns the WFA that results from
+the query, and the other stores the WFA in an output parameter. The
+\texttt{WFA} type is \texttt{wali::wfa::WFA}.
+
+\begin{comment}
+The functions that perform poststar and prestar are in the namespace
+\texttt{opennwa::query} and are declared in the header
+\texttt{opennwa/query/weighted.hpp}. They are:
+\begin{functionlist}
+  \functionDefEarly{WFA}{prestar}{Nwa const \& nwa, WFA const \& input, WeightGen \& wg}{}
+  \functionDefEarly{void}{prestar}{Nwa const \& nwa, WFA const \& input, WFA \& output, WeightGen \& wg}{}
+  \functionDefEarly{WFA}{poststar}{Nwa const \& nwa, WFA const \& input, WeightGen \& wg}{}
+  \functionDefEarly{void}{poststar}{Nwa const \& nwa, WFA const \& input, WFA \& output, WeightGen \& wg}{}
+    Computes the prestar or poststar of the configurations specified by
+    \texttt{input}, using the weights generated by \texttt{wg}. Either
+    returns the result or stores it in the parameter \texttt{output}.
+\end{functionlist}
+\end{comment}
+
+The functions that perform poststar and prestar are members of
+\texttt{Nwa}. (This interface will likely change in a later release, in which
+case the equivalent functionality will be moved into \texttt{namespace
+  query} and these versions will be deprecated.)  They are:
+
+\begin{functionlist}
+  \functionDefEarly{WFA}{Nwa::prestar}{WFA const \& input, WeightGen \& wg}{}
+  \functionDefEarly{void}{Nwa::prestar}{WFA const \& input, WFA \& output, WeightGen \& wg}{}
+  \functionDefEarly{WFA}{Nwa::poststar}{WFA const \& input, WeightGen \& wg}{}
+  \functionDefEarly{void}{Nwa::poststar}{WFA const \& input, WFA \& output, WeightGen \& wg}{}
+    Computes the prestar or poststar of the configurations specified by
+    Computes the poststar of the configurations specified by
+    \texttt{input}, using the weights generated by \texttt{wg}. Either
+    returns the result or stores it in the parameter \texttt{output}.
+\end{functionlist}
+
+\clearpage

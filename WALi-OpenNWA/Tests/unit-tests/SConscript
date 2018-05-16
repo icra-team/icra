@@ -1,0 +1,191 @@
+# -*- python -*-
+
+# Build the test programs 
+import os,os.path
+
+Import('WaliDir')
+Import('LibInstallDir')
+Import('ProgEnv')
+Import('Debug')
+
+if Debug:
+    print '\n+++ Entered "#/Tests/unit-tests/SConscript"\n'
+
+[(gtest_lib, gtest_include)] = SConscript('ThirdParty/SConscript')
+ListOfBuilds = ['glog']
+[(glog_lib, glog_inc)] = SConscript('#/ThirdParty/SConscript', 'ListOfBuilds')
+
+
+# If the following line is uncommented, 'scons all' fails. If it is
+# commented, 'scons tests' fails. We will fix this properly eventually.
+SConscript('#/AddOns/Domains/SConscript')
+SConscript("#/AddOns/Xfa/SConscript")
+
+env = ProgEnv.Clone()
+
+if 'cl' != env['compiler']:
+    env.AppendUnique(LIBS=[gtest_lib, 'pthread'])
+else:
+    env.AppendUnique(LIBS=[gtest_lib])
+env.AppendUnique(CPPPATH=[gtest_include, WaliDir])
+env.AppendUnique(CPPPATH=['#/Tests/unit-tests/Source',
+                          '#/AddOns/Domains/ThirdParty/include/',
+                          '#/AddOns/Domains/Source/',
+                          '#/AddOns/Xfa/Source'])
+env.AppendUnique(LIBPATH=['#/AddOns/Domains/ThirdParty/'])
+env.AppendUnique(CPPPATH=[glog_inc])
+env.AppendUnique(LIBS=[glog_lib, 'walidomains', 'bdd', "xfa"])
+
+#gtest and glog are ill begaved w.r.t. to these flags.
+env['WARNING_FLAGS'] = env['WARNING_FLAGS'].replace('-Wundef', '')
+env['WARNING_FLAGS'] = env['WARNING_FLAGS'].replace('-Werror', '')
+env['WARNING_FLAGS'] = env['WARNING_FLAGS'].replace('-Wsign-compare', '')
+
+#boost is ill-behaved w.r.t. these flags
+env['WARNING_FLAGS'] = env['WARNING_FLAGS'].replace('-Wfloat-equal', '')
+
+
+#############################################
+### NO ENV MODIFICATIONS AFTER THIS POINT ###
+###                                       ###
+### (changes won't apply to cpp11_env)    ###
+#############################################
+
+cpp11_env = env.Clone()
+cpp11_env.AppendUnique(CXXFLAGS=["-std=c++0x"])
+
+
+test_files = Split("""
+    Source/test.cpp
+    Source/fixtures/SimpleWeights.cpp
+
+    Source/wali/wali-prereqs.cpp    
+    Source/wali/domains/class-SemElemSet/tests.cpp
+    Source/wali/domains/class-KeyedSemElemSet/keyed-sem-elem-set.cpp
+    Source/wali/domains/class-KeyedSemElemSet/position-key.cpp
+    Source/wali/domains/class-TraceSplitSemElem/LiteralGuard.cpp
+    Source/wali/domains/class-TraceSplitSemElem/TraceSplitSemElem.cpp
+    Source/wali/domains/class-RepresentativeString/representative-string.cpp
+    Source/wali/witness/calculating-visitor.cpp
+    Source/wali/wfa/class-wfa/membership.cpp
+    Source/wali/wfa/class-wfa/epsilonClose.cpp
+    Source/wali/wfa/class-wfa/computeAllReachingWeights.cpp
+    Source/wali/wfa/class-wfa/determinize.cpp
+    Source/wali/wfa/class-wfa/complementStates.cpp
+    Source/wali/wfa/class-wfa/misc.cpp
+    Source/wali/wfa/class-wfa/endOfEpsilonChain.cpp
+    Source/wali/wfa/class-wfa/pathSummary.cpp
+    Source/wali/wpds/class-wpds/poststar.cpp
+    Source/wali/wpds/class-wpds/toWfa.cpp
+    Source/wali/wpds/class-fwpds/poststar.cpp
+    Source/wali/wpds/class-fwpds/prestar.cpp
+    Source/wali/util/ConfigurationVar.cpp
+
+    Source/opennwa/fixtures.cpp
+    Source/opennwa/class-NestedWord/nested-word.cpp
+    Source/opennwa/class-NWA/supporting.cpp
+    Source/opennwa/class-NWA/construction-assignment.cpp
+    Source/opennwa/class-NWA/get-size-is-add-remove-clear.cpp
+    Source/opennwa/namespace-query/is-deterministic.cpp
+    Source/opennwa/namespace-query/states-overlap.cpp
+    Source/opennwa/namespace-query/language-contains.cpp
+    Source/opennwa/namespace-query/language-comparison.cpp
+    Source/opennwa/namespace-query/language-is-empty.cpp
+    Source/opennwa/namespace-query/stats.cpp
+	Source/opennwa/namespace-query/reachability-and-shortest-path.cpp
+    Source/opennwa/namespace-construct/complement.cpp
+    Source/opennwa/namespace-construct/union.cpp
+    Source/opennwa/namespace-construct/intersect.cpp
+    Source/opennwa/namespace-construct/concatenate.cpp
+    Source/opennwa/namespace-construct/determinize.cpp
+    Source/opennwa/namespace-construct/star.cpp
+    Source/opennwa/namespace-construct/reverse.cpp 
+    Source/opennwa/serialization/idempotency.cpp
+    Source/opennwa/serialization/parser-unit-tests.cpp
+    Source/opennwa/namespace-nwa_pds/nwa-to-wpds.cpp
+    Source/opennwa/namespace-nwa_pds/wpds-to-nwa.cpp
+    Source/opennwa/namespace-nwa_pds/plus-wpds.cpp
+    Source/opennwa/namespace-nwa_pds/answers-nwa-to-backwards-pds-calls.cpp
+    Source/opennwa/namespace-nwa_pds/answers-nwa-to-backwards-pds-returns.cpp
+    Source/opennwa/namespace-nwa_pds/answers-nwa-to-pds-calls.cpp
+    Source/opennwa/namespace-nwa_pds/answers-nwa-to-pds-returns.cpp
+    Source/opennwa/namespace-nwa_pds/get-control-location.cpp
+
+    Source/AddOns/Domains/binrel/binrelmanager.cpp
+    Source/AddOns/Domains/binrel/binrel.cpp
+    Source/AddOns/Domains/binrel/nwa_detensor.cpp
+    Source/AddOns/Domains/binrel/merge_fns.cpp
+""")
+
+cpp11_test_files = Split("""
+    Source/AddOns/Xfa/wali/util/base64.cpp
+    Source/AddOns/Xfa/wali/util/DisjointSets.cpp
+    Source/AddOns/Xfa/wali/util/details/Partition.cpp
+
+    Source/AddOns/Xfa/wali/xfa/class-xfa/intersect.cpp
+    Source/AddOns/Xfa/wali/xfa/class-xfa/is-member.cpp
+""")
+
+
+just_compile = env.SConscript('Source/header-compilation/SConscript')
+
+cpp11_objs = []
+for f in cpp11_test_files:
+    cpp11_objs.extend(cpp11_env.Object(f))
+
+unit_tests = env.Program('unit-tests', test_files + cpp11_objs + just_compile)
+built = unit_tests
+built += env.Install('#/Tests/harness/unit-tests', unit_tests)
+built += env.Install('#/Tests/harness/unit-tests/', '#/Tests/unit-tests/regression_baseline')
+
+Return('built')
+
+#  ## ###############################
+#  ## Environment
+#  Env = ProgEnv.Clone()
+#  
+#  utf_lib = None
+#  
+#  ## Note - Be sure to use a list when 'Append'ing to CPPPATH
+#  if "BOOST_HOME" in os.environ:
+#     boost_home = os.environ["BOOST_HOME"]
+#     Env.Append(CPPPATH = [boost_home],
+#                LIBPATH = [os.path.join(boost_home, 'lib')])
+#     utf_lib = os.path.join(boost_home, 'lib', 'libboost_unit_test_framework.a')
+#  
+#  ## Note - Be sure to use a list when 'Append'ing to CPPPATH
+#  if "BOOST_INCLUDE" in os.environ:
+#     boost_include = os.environ["BOOST_INCLUDE"]
+#     Env.Append(CPPPATH = [boost_include])
+#  
+#  ## Note - Be sure to use a list when 'Append'ing to CPPPATH
+#  if "BOOST_LIB" in os.environ:
+#     boost_lib = os.environ["BOOST_LIB"]
+#     Env.Append(LIBPATH = [boost_lib])
+#     utf_lib = os.path.join(boost_lib, 'libboost_unit_test_framework.a')
+#  
+#  if utf_lib == None:
+#     print "Well, I don't know where the library is; I'll try this and see if it works"
+#     print "You might try setting BOOST_HOME (to Boost's root) or BOOST_LIB (to the lib dir)"
+#     Env.Append(LIBS = ['boost_unit_test_framework'])
+#  
+#  built = []
+#  
+#  sources = Split("""
+#      driver.cpp
+#      arbitrary.cpp
+#  """)
+#  
+#  if utf_lib:
+#     sources = sources + [utf_lib]
+#  
+#  
+#  ## Commented out because this is really old
+#  
+#  #exe = Env.Program('test-nwa.exe', sources + Env['StaticLibs'])
+#  #built += (exe)
+#  
+#  built = []
+#  
+#  Return('built')
+
