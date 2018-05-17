@@ -36,8 +36,6 @@
 // ::wali::util
 #include "wali/util/Timer.hpp"
 // ::wali::cprover
-//#include "BplToPds.hpp"
-//#include "wali/domains/name_weight/nameWeight.hpp"
 #include <boost/unordered_map.hpp>
 //#include "PtoICFG.hpp"
 // TSL
@@ -61,8 +59,6 @@ using namespace wali::wpds;
 using namespace wali::wpds::ewpds;
 using namespace wali::wpds::fwpds;
 using namespace wali::wpds::nwpds;
-using namespace wali::cprover;
-using namespace wali::domains::name_weight;
 
 using namespace wali::domains::duetrel;
 
@@ -111,142 +107,32 @@ void set_vertices_wfa(wali::Key entry, wali::Key exit) {
     exit_key = exit;
 }
 
-// ----------------------------------------------------------------------------
-//   Global map variables and their types:
+/*
+ *  Functions to generate stack and state names
+ */
+static wali::Key st1()
+{
+  return getKey("Unique State Name");
+}
 
-typedef boost::unordered_map<
-    MemoCacheKey1<RTG::regExpRefPtr >,
-    RTG::regExpTListRefPtr,
-    boost::hash<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::equal_to<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::allocator<std::pair<const MemoCacheKey1<RTG::regExpRefPtr >, RTG::regExpTListRefPtr> > >
-    TDiffHashMap;
+static wali::Key stk(int k)
+{
+  return getKey(k);
+}
 
-TDiffHashMap TdiffMap;
+static wali::Key getPdsState() 
+{
+  return st1();
+  //return stt();
+}
 
-typedef boost::unordered_map<
-    MemoCacheKey1<RTG::regExpRefPtr >,
-    RTG::regExpListRefPtr,
-    boost::hash<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::equal_to<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::allocator<std::pair<const MemoCacheKey1<RTG::regExpRefPtr >, RTG::regExpListRefPtr> > >
-    DiffHashMap;
+//static wali::Key stt()
+//{
+//  return getKey("Unique State Name");
+//}
 
-DiffHashMap diffHMap;
-
-typedef boost::unordered_map<
-    MemoCacheKey1<RTG::regExpRefPtr >,
-    CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr,
-    boost::hash<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::equal_to<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::allocator<std::pair<const MemoCacheKey1<RTG::regExpRefPtr >, CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr> > >
-    EvalMap;
-
-EvalMap EvalMap0;
-
-typedef boost::unordered_map<
-    MemoCacheKey1<RTG::regExpRefPtr >,
-    CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr,
-    boost::hash<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::equal_to<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::allocator<std::pair<const MemoCacheKey1<RTG::regExpRefPtr >, CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr> > >
-    EvalRMap;
-
-EvalRMap EvalMap2;
-
-typedef boost::unordered_map<
-    MemoCacheKey1<RTG::regExpTRefPtr >,
-    CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr,
-    boost::hash<MemoCacheKey1<RTG::regExpTRefPtr > >,
-    std::equal_to<MemoCacheKey1<RTG::regExpTRefPtr > >,
-    std::allocator<std::pair<const MemoCacheKey1<RTG::regExpTRefPtr >, CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr> > >
-    EvalTMap;
-
-EvalTMap EvalMapT;
-
-typedef boost::unordered_map<
-    MemoCacheKey1<RTG::regExpRefPtr >,
-    CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr,
-    boost::hash<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::equal_to<MemoCacheKey1<RTG::regExpRefPtr > >,
-    std::allocator<std::pair<const MemoCacheKey1<RTG::regExpRefPtr >, CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr> > >
-    StarMap;
-
-typedef boost::unordered_map<
-    MemoCacheKey1<RTG::regExpTRefPtr >,
-    CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr,
-    boost::hash<MemoCacheKey1<RTG::regExpTRefPtr > >,
-    std::equal_to<MemoCacheKey1<RTG::regExpTRefPtr > >,
-    std::allocator<std::pair<const MemoCacheKey1<RTG::regExpTRefPtr >, CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr> > >
-    StarMapT;
-
-StarMap newStarVal;
-StarMapT newStarValT;
-StarMap oldStarVal;
-StarMapT oldStarValT;
-
-// I'm using these maps as sets; the value in every map entry is "true".
-// One could also use boost::unordered_set for this purpose, but that
-//   would add another dependency.
-typedef boost::unordered_map<
-  MemoCacheKey1<RTG::regExpRefPtr >,
-  bool,
-  boost::hash<MemoCacheKey1<RTG::regExpRefPtr > >,
-  std::equal_to<MemoCacheKey1<RTG::regExpRefPtr > >,
-  std::allocator<std::pair<const MemoCacheKey1<RTG::regExpRefPtr >, bool > > >
-  VisitedMap;
-
-typedef boost::unordered_map<
-  MemoCacheKey1<RTG::regExpTRefPtr >,
-  bool,
-  boost::hash<MemoCacheKey1<RTG::regExpTRefPtr > >,
-  std::equal_to<MemoCacheKey1<RTG::regExpTRefPtr > >,
-  std::allocator<std::pair<const MemoCacheKey1<RTG::regExpTRefPtr >, bool > > >
-  VisitedMapT;
-
-//map of regExps that have already been seen (should change to an unordered_map for speedup)
-std::map<reg_exp_t, RTG::regExpRefPtr> regExpConversionMap; // This was formerly called "seen" and was local to convertToRegExp --JTB
 
 std::map<reg_exp_t, IRE::regExpRefPtr> IREregExpConversionMap;
-
-// ----------------------------------------------------------------------------
-// Stack frames needed by the non-recursive versions of convertToTSL and Eval and EvalT:
-
-// A Stack frame which takes a reg_exp_t and has pointers to it's left and right children, used from
-// Converting to a TSLRegExp
-struct cFrame
-{
-    cFrame(reg_exp_t & e) : is_new(true), e(e), op(), left(), right() {}
-
-    bool is_new;
-    reg_exp_t e;
-    int op;
-    reg_exp_t left;
-    reg_exp_t right;
-};
-
-// A Stack frame which takes a TSL regExpRefPtr and has pointers to it's left and right children
-// Used for the differential function and evalRegExpAt0 and evalRegExp
-struct dFrame
-{
-    dFrame(RTG::regExpRefPtr & e) : is_new(true), e(e), op(), left(), right(){}
-    bool is_new;
-    RTG::regExpRefPtr e;
-    int op;
-    RTG::regExpRefPtr left;
-    RTG::regExpRefPtr right;
-};
-
-// A Stack frame which takes a TSL regExpTRefPtr and has pointers to it's left and right children, used for evalT
-struct sFrame
-{
-    sFrame(RTG::regExpTRefPtr & e) : is_new(true), e(e), op(), left(), right(){}
-    bool is_new;
-    RTG::regExpTRefPtr e;
-    int op;
-    RTG::regExpTRefPtr left;
-    RTG::regExpTRefPtr right;
-};
 
 // ----------------------------------------------------------------------------
 //   Global flag variables and similar:
@@ -287,28 +173,6 @@ int maxRnds = -1;  //maximum number of rounds of newton loop
 //RTG::assignmentRefPtr globalAssignment;
 
 // ----------------------------------------------------------------------------
-
-CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr mkSemElemWrapper(relation_t d) {
-    wali::sem_elem_tensor_t s(d.get_ptr());
-    return s;
-}
-
-CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr mkSemElemWrapperFromSemElem(sem_elem_t d) {
-    wali::sem_elem_tensor_t s(dynamic_cast<wali::SemElemTensor *>(d.get_ptr()));
-    if (s == 0) {
-        assert(0 && "Failed to cast a sem_elem to a sem_elem_tensor.");
-    }
-    return s;
-}
-
-relation_t mkRelation(CONC_EXTERN_PHYLA::sem_elem_wrapperRefPtr s) {
-    relation_t r(dynamic_cast<Relation*>(s.v.get_ptr()));
-    if (r == 0) {
-        assert(0 && "Failed to cast a sem_elem_wrapper to a Relation.");
-    }
-    relation_t d(r); // This is unnecessary, right?
-    return d;
-}
 
 relation_t mkRelationFromSemElem(wali::sem_elem_t s) {
     relation_t r (dynamic_cast<Relation*>(s.get_ptr()));
@@ -386,6 +250,11 @@ IRE::regExpRefPtr convertToICRARegExp(reg_exp_t exp,
 }
 #endif
 
+
+#define WIDENING_DELAY 6
+// Default values:
+#define MAX_ROUNDS_FROM_BELOW 50
+#define MAX_ROUNDS_FROM_ABOVE 4
 
 #ifdef USE_IRE
 void newtonLoop_GJ_IRE(IRE_Assignment & IREnewAssignment, 
@@ -1160,7 +1029,7 @@ int runBasicNewton(char **args)
     doWideningThisRound = false; inNewtonLoop = false;
     WFA outfaNewton;
     if (aboveBelowMode == NEWTON_FROM_ABOVE || gaussJordanMode == 0) {
-        doNewtonSteps_NPATP(outfaNewton, entry_key, pds, false);
+        //doNewtonSteps_NPATP(outfaNewton, entry_key, pds, false);
         assert(0 && "Running modes NEWTON_FROM_ABOVE and NPA_TP are not supported in the current (non-TSL) version of ICRA.");
     } else if (aboveBelowMode == NEWTON_FROM_BELOW) {
         //doNewtonSteps_GJ(outfaNewton, entry_key, pds, false); // HERE XXX
