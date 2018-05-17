@@ -136,8 +136,7 @@ let rec mkKleene a =                                                            
     | Plus (One,b) -> mkKleene b                                                                              (*,-1*)  (*     Plus(One(),b): mkKleene(b), *) 
     | Plus (b,One) -> mkKleene b                                                                              (*,-1*)  (*     Plus(b,One()): mkKleene(b), *) 
     | Kleene (e,k) -> a (*  Kleene-star is idempotent: e** = e* *)                                            (*,-1*)  (*     Kleene(e): a,      // Kleene-star is idempotent: e** = e* *) 
-    | _ -> Kleene(a,0)  
-(*    | _ -> (incr globalStarCounter; Kleene(a,!globalStarCounter) )                                                     (*     default: Kleene(a) *)  *)
+    | _ -> (incr globalStarCounter; Kleene(a,!globalStarCounter) )                                                     (*     default: Kleene(a) *)
                                                                                                                        (*  *) 
 ;;
 (*  regExpT simplifying constructors -------------------------- *)                                                     (* // regExpT simplifying constructors -------------------------- *) 
