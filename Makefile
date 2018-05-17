@@ -10,18 +10,19 @@ BUILD = _build
 SOURCE = src
 DUET_SO = $(DUET_ROOT)/_build/duet/libduet.so
 CXXFLAGS = -c -O0 -Wall -g -Wextra -Wformat=2 -Winit-self -Wfloat-equal -Wpointer-arith -Wcast-align -Wwrite-strings -Wconversion -Woverloaded-virtual -fdiagnostics-show-option -DBOOST_NO_DEFAULTED_FUNCTIONS=1 -DCHECKED_LEVEL=2 -DEXPORT_GTR_SYMBOLS=0 -DPRATHMEHS_NWA_DETENSOR=0 -DREGEXP_TEST=1 -DUSE_DUET=1 -D_GLIBCXX_DEBUG=1 -I$(WALI_ROOT)/Source -I$(BOOST_PATH)/include -I$(SOURCE) -I$(WALI_ROOT)/AddOns/Domains/Source -I$(WALI_ROOT)/AddOns/Domains/ThirdParty/include -I"`ocamlc -where`"
+ICRA_BINARY = icra
 
 .PHONY: wali duet clean veryclean
 .DEFAULT_GOAL := icra
 
-icra: $(DOMAINS_SO) $(WALI_SO) $(DUET_SO) $(BUILD)/icra.o $(BUILD)/icra_callbacks.o $(BUILD)/ire.o $(BUILD)/ire_callbacks.o 
+$(ICRA_BINARY): $(DOMAINS_SO) $(WALI_SO) $(DUET_SO) $(BUILD)/icra.o $(BUILD)/icra_callbacks.o $(BUILD)/ire.o $(BUILD)/ire_callbacks.o 
 	g++ -g -o icra -Wl,-rpath=$(BOOST_PATH)/lib -Wl,-rpath=$(DUET_ROOT)/_build/duet -Wl,-rpath=$(DUET_ROOT)/_build/src/duet -Wl,-rpath=$(WALI_ROOT) -Wl,-rpath=$(WALI_ROOT)/lib64 -Wl,--start-group $(BUILD)/icra.o $(BUILD)/ire_callbacks.o $(BUILD)/ire.o $(BUILD)/icra_callbacks.o -L$(BOOST_PATH)/lib -L$(WALI_ROOT)/lib64 -L$(BUILD) -L"`ocamlc -where`" -L$(DUET_ROOT)/_build/duet -L$(WALI_ROOT) -lrt -lduet -lwali -lwalidomains -lglog -Wl,--end-group
 	@echo " **** ICRA build completed successfully **** "
 
 $(shell mkdir -p $(BUILD))
 
 clean:
-	-rm icra
+	-rm $(ICRA_BINARY)
 	-rm -rf $(BUILD)
 	-rm -rf $(DUET_ROOT)/_build
 	-rm -rf $(WALI_ROOT)/_build
@@ -29,7 +30,7 @@ clean:
 	-rm $(SOURCE)/icraRegexp.cmx	
 
 veryclean:
-	-rm icra
+	-rm $(ICRA_BINARY)
 	-rm -rf $(BUILD)
 	-rm -rf $(DUET_ROOT)/_build
 	-cd $(WALI_ROOT) && scons -c
