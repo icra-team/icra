@@ -39,8 +39,8 @@
 #include <boost/unordered_map.hpp>
 
 #include "icra.hpp"
+#include "icra_callbacks.hpp"
 
-#include "NewtonOcamlInterface.hpp"
 extern "C" {
 #include <caml/mlvalues.h>
 #include <caml/callback.h>
@@ -68,8 +68,8 @@ typedef std::map<int,IRE::regExpRefPtr> IRERegExpMap;
 
 // ----------------------------------------------------------------------------
 //   The incoming program is encoded in the following variables,
-//     whose types are defined in NewtonOcamlInterface.hpp, and 
-//     which are set in NewtonOcamlInterface.cpp:
+//     whose types are defined in icra_callbacks.hpp, and 
+//     which are set in icra_callbacks.cpp:
 
 std::vector<caml_rule> ruleHolder;
 std::vector<caml_call_rule> callRuleHolder;
@@ -942,7 +942,7 @@ int runBasicNewton(char **args)
 
 void printUsageInstr() {
     std::cout << "Newton Duet" << std::endl;
-    std::cout << std::endl << "Correct usage:\tNewtonOcaml running_mode [options] input_file [duet options]" << std::endl;
+    std::cout << std::endl << "Correct usage:\ticra running_mode [options] input_file [duet options]" << std::endl;
     std::cout << std::endl << "Running modes:" << std::endl;
     std::cout << "\t-cra_newton_basic\t[currently, this mode is the only one working]" << std::endl;
     std::cout << "\t-cra_newton_star" << std::endl;
