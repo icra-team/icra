@@ -37,8 +37,6 @@
 #include "wali/util/Timer.hpp"
 // ::wali::cprover
 #include <boost/unordered_map.hpp>
-//#include "PtoICFG.hpp"
-// TSL
 
 #include "icra.hpp"
 
@@ -107,6 +105,8 @@ void set_vertices_wfa(wali::Key entry, wali::Key exit) {
     exit_key = exit;
 }
 
+// ----------------------------------------------------------------------------
+
 /*
  *  Functions to generate stack and state names
  */
@@ -123,13 +123,9 @@ static wali::Key stk(int k)
 static wali::Key getPdsState() 
 {
   return st1();
-  //return stt();
 }
 
-//static wali::Key stt()
-//{
-//  return getKey("Unique State Name");
-//}
+// ----------------------------------------------------------------------------
 
 
 std::map<reg_exp_t, IRE::regExpRefPtr> IREregExpConversionMap;
@@ -169,8 +165,6 @@ bool testMode = false;
 string testFileName;
 
 int maxRnds = -1;  //maximum number of rounds of newton loop
-
-//RTG::assignmentRefPtr globalAssignment;
 
 // ----------------------------------------------------------------------------
 
@@ -832,25 +826,6 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
     std::cout << "================================================" << std::endl;
 }
 
-//    if (boundingVarAll.size() > 0 || boundingVarEntry.size() > 0) {
-//        int variableID = getGlobalBoundingVarFromName(globalBoundingVarName);
-//        if (program->main != NULL && generateBoundsInMainOnly) {
-//            // We've been asked to print bounds on a particular global variable
-//            //   for the main procedure.
-//            std::cout << "Variable bounds for main procedure: " << std::endl;
-//            program->main->summary->printHull(std::cout, 0, variableID);
-//            std::cout << std::endl;
-//        } else if (!generateBoundsInMainOnly) {
-//            for (std::map<std::string,ProcedureRefPtr>::iterator it=program->proceduresByName.begin(); 
-//                 it!=program->proceduresByName.end(); ++it) {
-//                ProcedureRefPtr procedure = (*it).second;
-//                std::cout << "Variable bounds for procedure '" << procedure->name << "': " << std::endl;
-//                procedure->summary->printHull(std::cout, 0, variableID);
-//                std::cout << std::endl;
-//            }
-//        }
-//    }
-
 
 void checkAssertions(WFA& outfaNewton) {
     std::cout << "================================================" << std::endl;
@@ -922,80 +897,6 @@ void checkAssertions(WFA& outfaNewton) {
     }
 }
 
-// OLD CODE
-//// Print bounds on program variables as specified by the data structure printHullRuleHolder
-////
-////   If a non-null mainProcedureSummary is supplied, and if we were instructed by the user
-////   to print bounds on some global variable for the main procedure, we will also do thar.
-//void printVariableBounds(WFA& outfaNewton, relation_t mainProcedureSummary) {
-//    std::cout << "================================================" << std::endl;
-//    std::cout << "Bounds on Variables" << std::endl << std::endl;
-//    
-//    for (std::vector<caml_print_hull_rule>::iterator it = printHullRuleHolder.begin(); 
-//         it != printHullRuleHolder.end(); 
-//         it++)
-//    {
-//        wali::Key key = it->first;
-//        int line = it->second.first;
-//        int variableID = it->second.second;
-//        
-//        wali::wfa::TransSet print_hull_transitions;
-//        print_hull_transitions = outfaNewton.match(st1(), key);
-//        for(wali::wfa::TransSet::iterator tsit = print_hull_transitions.begin(); 
-//            tsit != print_hull_transitions.end(); 
-//            tsit++)
-//        {
-//            relation_t intraprocWeight = mkRelationFromSemElem((*tsit)->weight());  // Weight from containing procedure's entry to print-hull pt
-//            relation_t contextWeight = mkRelationFromSemElem(outfaNewton.getState((*tsit)->to())->weight());  // Weight of calling context
-//
-//            //relation_t composedWeight = contextWeight->Compose(intraprocWeight);    // FIXME: Compose badly named: Compose should be Extend
-//            relation_t composedWeight = mkRelationFromSemElem(contextWeight->extend(intraprocWeight.get_ptr()));    
-//            
-//            //std::cout << "Variable Bounds at Line: " << line << std::endl;
-//            std::cout << "Variable bounds";
-//            if (line != -1) {
-//                std::cout << " at line " << line << " in ";
-//            } else {
-//                std::cout << " for procedure ";
-//            }
-//            wali::ref_ptr<wali::KeySource> ks = wali::getKeySource(key);
-//            wali::ref_ptr<wali::IntSource> is = dynamic_cast<wali::IntSource *>(ks.get_ptr());
-//            if (is != NULL) {
-//                int vertex = is->getInt();
-//                printProcedureNameFromNode(vertex, std::cout);
-//                std::cout << std::endl;
-//            } else {
-//                std::cout << "unknown procedure" << std::endl;
-//            }
-//            intraprocWeight->printHull(std::cout, 0, variableID);
-//            std::cout << std::endl;
-//        }
-//    }
-//    
-//    ////if (globalBoundingVarName != NULL && mainProcedureSummary != NULL && generateBoundsInMainOnly) {
-//    ////    // We've been asked to print bounds on a particular global variable
-//    ////    //   for the main procedure.
-//    ////    std::cout << "Variable bounds for main procedure: " << std::endl;
-//    ////    int variableID = getGlobalBoundingVarFromName(globalBoundingVarName);
-//    ////    mainProcedureSummary->printHull(std::cout, 0, variableID);
-//    ////    std::cout << std::endl;
-//    ////}
-//    
-//    //if(dump){
-//    //    FWPDS * originalPds = new FWPDS();
-//    //    con = pds_from_prog(originalPds, pg);
-//    //    cout << "[Newton] Dumping PDS to pds.dot..." << endl;
-//    //    fstream pds_stream("pds.dot", fstream::out);
-//    //    RuleDotty rd(pds_stream);
-//    //    pds_stream << "digraph{" << endl;
-//    //    originalPds->for_each(rd);
-//    //    pds_stream << "}" << endl;
-//    //    delete(originalPds);
-//    //}
-//
-//    #undef flush
-//    std::cout << "================================================" << std::endl;
-//}
 #undef flush
 
 void print_stats() {
@@ -1011,7 +912,6 @@ int runBasicNewton(char **args)
     caml_startup(args); // This line calls Duet to analyze the program specified on the command
                         //   line and store the analyzed program, represented as PDS rules, into
                         //   the various ruleHolder data structures used in the code below.
-    //testICRARegExp();
     FWPDS * pds = new FWPDS();
     for (std::vector<caml_rule>::iterator it = ruleHolder.begin(); it != ruleHolder.end(); it++) {
         pds->add_rule(st1(), it->first.first, st1(), it->first.second, it->second);
