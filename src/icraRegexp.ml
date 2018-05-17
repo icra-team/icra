@@ -1,58 +1,58 @@
 open Printf;; 
 
-(* This is the type of the contents of a weight.                                                                       (* (~* This is the type of the contents of a weight. *) 
- *   It is a black box as far as this OCaml code is concerned;                                                         (*  *   It is a black box as far as this OCaml code is concerned; *) 
- *    its contents are only manipulated by the C++ code *)                                                             (*  *    its contents are only manipulated by the C++ code *~) *) 
-type weight;;                                                                                                          (* type weight;; *) 
-                                                                                                                       (*  *) 
-type regExp =                                                                                                          (* type regExp = *) 
-    | Zero                                                                                                             (*     | Zero *) 
-    | One                                                                                                              (*     | One *) 
-    | Var of int                                                                                                       (*     | Var of int *) 
-    | Weight of weight                                                                                                 (*     | Weight of weight *) 
-    | Project of regExp                                                                                                (*     | Project of regExp *) 
-    | Plus of regExp * regExp                                                                                          (*     | Plus of regExp * regExp *) 
-    | Dot of regExp * regExp                                                                                           (*     | Dot of regExp * regExp *) 
-    | Kleene of regExp * int (* this int is a unique key for this star *)                                              (*     | Kleene of regExp *) 
-    | Detensor of regExp * regExpT                                                                                     (*     | Detensor of regExp *) 
-                                                                                                                       (*  *) 
-and regExpT =                                                                                                          (* and regExpT = *) 
-    | ZeroT                                                                                                            (*     | ZeroT *) 
-    | OneT                                                                                                             (*     | OneT *) 
-    | VarT of int                                                                                                      (*     | VarT of int *) 
-    | ProjectT of regExpT                                                                                              (*     | ProjectT of regExpT *) 
-    | PlusT of regExpT * regExpT                                                                                       (*     | PlusT of regExpT * regExpT *) 
-    | DotT of regExpT * regExpT                                                                                        (*     | DotT of regExpT * regExpT *) 
-    | KleeneT of regExpT * int (* this int is a unique key for this star *)                                            (*     | KleeneT of regExpT *) 
-    | Tensor of regExp * regExp                                                                                        (*     | Tensor of regExp * regExp *) 
-;;                                                                                                                     (* ;; *) 
-                                                                                                                       (*  *) 
-(* let try_icra_regexp () = 42;; *)                                                                                         (* let try_icra_regexp () = 42;; *) 
-                                                                                                                       (*  *) 
-(* let _ = Callback.register "try_icra_regexp" try_icra_regexp;;          *)                                                (* let _ = Callback.register "try_icra_regexp" try_icra_regexp;; *) 
-                                                                                                                       (*  *) 
-(* ---- external functions ---- *)                                                                                     (* (~* ---- external functions ---- *~) *) 
-(* These functions are defined externally (in C) and are called in this OCaml file. *)                                 (* (~* These functions are defined externally (e.g., in C) and are called in this OCaml file. *~) *) 
-                                                                                                                       (*  *) 
-external evalKleeneSemElemT : weight -> int -> weight = "IRE_evalKleeneSemElemT"                                  (* EXTERN sem_elem_wrapper<E> evalKleeneSemElemT(sem_elem_wrapper<E> a, regExpT<E> child); *) 
-external evalKleeneSemElem : weight -> int -> weight = "IRE_evalKleeneSemElem"                                     (* EXTERN sem_elem_wrapper<E> evalKleeneSemElem(sem_elem_wrapper<E> a, regExp<E> child); *) 
-external evalPlusSemElemT : weight -> weight -> weight = "IRE_evalPlusSemElemT"                                       (* EXTERN sem_elem_wrapper<E> evalPlusSemElemT(sem_elem_wrapper<E> a, sem_elem_wrapper<E> b); *) 
-external evalPlusSemElem : weight -> weight -> weight = "IRE_evalPlusSemElem"                                         (* EXTERN sem_elem_wrapper<E> evalPlusSemElem(sem_elem_wrapper<E> a, sem_elem_wrapper<E> b); *) 
-external evalDotSemElemT : weight -> weight -> weight = "IRE_evalDotSemElemT"                                         (* EXTERN sem_elem_wrapper<E> evalDotSemElemT(sem_elem_wrapper<E> a, sem_elem_wrapper<E> b); *) 
-external evalDotSemElem : weight -> weight -> weight = "IRE_evalDotSemElem"                                           (* EXTERN sem_elem_wrapper<E> evalDotSemElem(sem_elem_wrapper<E> a, sem_elem_wrapper<E> b); *) 
-external evalProjectSemElemT : weight -> weight = "IRE_evalProjectSemElemT"                                           (* EXTERN sem_elem_wrapper<E> evalProjectSemElemT(INT32<E> a, INT32<E> b, sem_elem_wrapper<E> c); *) 
-external evalProjectSemElem : weight -> weight = "IRE_evalProjectSemElem"                                             (* EXTERN sem_elem_wrapper<E> evalProjectSemElem(INT32<E> a, INT32<E> b, sem_elem_wrapper<E> c); *) 
-external evalVarSemElem : int -> weight = "IRE_evalVarSemElem"                                                        (* EXTERN sem_elem_wrapper<E> evalVarSemElem(INT32<E> a); *) 
-external evalVarSemElemT : int -> weight = "IRE_evalVarSemElemT"                                                      (* EXTERN sem_elem_wrapper<E> evalVarSemElemT(INT32<E> a); *) 
-external evalTensor : weight -> weight -> weight = "IRE_evalTensor"                                                   (* EXTERN sem_elem_wrapper<E> evalTensor(sem_elem_wrapper<E> a, sem_elem_wrapper<E> b); *) 
-external getZeroTWt :  unit -> weight = "IRE_getZeroTWt"                                                              (* EXTERN sem_elem_wrapper<E> getZeroTWt(); *) 
-external getOneTWt :  unit  -> weight = "IRE_getOneTWt"                                                               (* EXTERN sem_elem_wrapper<E> getOneTWt(); *) 
-external getZeroWt :  unit  -> weight = "IRE_getZeroWt"                                                               (* EXTERN sem_elem_wrapper<E> getZeroWt(); *) 
-external detensor : weight -> weight = "IRE_detensor"                                                                 (* EXTERN sem_elem_wrapper<E> detensorTranspose(sem_elem_wrapper<E> a); *) 
-external getOneWt :  unit  -> weight = "IRE_getOneWt"                                                                 (* EXTERN sem_elem_wrapper<E> getOneWt(); *) 
+(* This is the type of the contents of a weight.                                                             
+ *   It is a black box as far as this OCaml code is concerned;                                               
+ *    its contents are only manipulated by the C++ code *)                                                   
+type weight;;                                                                                                
+                                                                                                             
+type regExp =                                                                                                
+    | Zero                                                                                                   
+    | One                                                                                                    
+    | Var of int                                                                                             
+    | Weight of weight                                                                                       
+    | Project of regExp                                                                                      
+    | Plus of regExp * regExp                                                                                
+    | Dot of regExp * regExp                                                                                 
+    | Kleene of regExp * int (* this int is a unique key for this star *)                                    
+    | Detensor of regExp * regExpT                                                                           
+                                                                                                             
+and regExpT =                                                                                                
+    | ZeroT                                                                                                  
+    | OneT                                                                                                   
+    | VarT of int                                                                                            
+    | ProjectT of regExpT                                                                                    
+    | PlusT of regExpT * regExpT                                                                             
+    | DotT of regExpT * regExpT                                                                              
+    | KleeneT of regExpT * int (* this int is a unique key for this star *)                                  
+    | Tensor of regExp * regExp                                                                              
+;;                                                                                                           
+                                                                                                             
+(* let try_icra_regexp () = 42;; *)                                                                          
+                                                                                                             
+(* let _ = Callback.register "try_icra_regexp" try_icra_regexp;;          *)                                 
+                                                                                                             
+(* ---- external functions ---- *)                                                                           
+(* These functions are defined externally (in C) and are called in this OCaml file. *)                       
+                                                                                                             
+external evalKleeneSemElemT : weight -> int -> weight = "IRE_evalKleeneSemElemT"                             
+external evalKleeneSemElem : weight -> int -> weight = "IRE_evalKleeneSemElem"                               
+external evalPlusSemElemT : weight -> weight -> weight = "IRE_evalPlusSemElemT"                              
+external evalPlusSemElem : weight -> weight -> weight = "IRE_evalPlusSemElem"                                
+external evalDotSemElemT : weight -> weight -> weight = "IRE_evalDotSemElemT"                                
+external evalDotSemElem : weight -> weight -> weight = "IRE_evalDotSemElem"                                  
+external evalProjectSemElemT : weight -> weight = "IRE_evalProjectSemElemT"                                  
+external evalProjectSemElem : weight -> weight = "IRE_evalProjectSemElem"                                    
+external evalVarSemElem : int -> weight = "IRE_evalVarSemElem"                                               
+external evalVarSemElemT : int -> weight = "IRE_evalVarSemElemT"                                             
+external evalTensor : weight -> weight -> weight = "IRE_evalTensor"                                          
+external getZeroTWt :  unit -> weight = "IRE_getZeroTWt"                                                     
+external getOneTWt :  unit  -> weight = "IRE_getOneTWt"                                                      
+external getZeroWt :  unit  -> weight = "IRE_getZeroWt"                                                      
+external detensor : weight -> weight = "IRE_detensor"                                                        
+external getOneWt :  unit  -> weight = "IRE_getOneWt"                                                        
 external printWrappedWeight : weight -> int -> unit = "IRE_printWrappedWeight"
-                                                                                                                       (*  *) 
-                                                                                                                       (*  *) 
+                                                                                                             
+                                                                                                             
 let mkOne () = One;;
 let mkZero () = Zero;;
 
@@ -90,134 +90,134 @@ let mkDotT a b = DotT(a, b);;
 let mkKleeneT a = KleeneT(a);;
 let mkTensor a b = Tensor(a,b);;
 *)
-(* ---- regExp simplifying constructors ---- *)                                                                        (* (~* ---- regExp simplifying constructors ---- *~) *) 
-                                                                                                                       (*  *) 
-let mkVar a =                                                                                                      (* CACHED NOWIDEN regExp mkVar(INT32 a) { *) 
-    Var(a)                                                                                                             (*   Var(a) *) 
+(* ---- regExp simplifying constructors ---- *)                                                              
+                                                                                                             
+let mkVar a =                                                                                                
+    Var(a)                                                                                                   
 ;;
-let mkWeight a =                                                                                                       (* CACHED NOWIDEN regExp mkWeight(sem_elem_wrapper a) { *) 
-    Weight(a)                                                                                                          (*   Weight(a) *) 
+let mkWeight a =                                                                                             
+    Weight(a)                                                                                                
 ;;
-let mkProject c =                                                                                                      (* CACHED NOWIDEN regExp mkProject(INT32 a, INT32 b, regExp c) { *) 
-  match c with                                                                                                         (*   with(c) ( *) 
-    | Zero -> Zero                                                                                            (*,-1*)  (*     Zero() : Zero(), *) 
-    | One -> One                                                                                              (*,-1*)  (*     One() : One(), *) 
+let mkProject c =                                                                                            
+  match c with                                                                                               
+    | Zero -> Zero                                                                                           
+    | One -> One                                                                                             
     | Weight(w) -> Weight (evalProjectSemElem w)
-    | _ -> Project(c)                                                                                                  (*     default : Project(a,b,c) *) 
-;;                                                                                                                     (*  *) 
-let rec mkPlus a b =                                                                                                       (* CACHED NOWIDEN regExp mkPlus(regExp a, regExp b) { *) 
-(* let p = RegExpPair(a, b) in ( *)                                                                                    (*   let p = RegExpPair(a, b) in ( *) 
-  match a, b with                                                                                                      (*     with(p) ( *) 
-    |  Zero, d -> d                                                                                           (*,-1*)  (*       RegExpPair(Zero(), d): d, *) 
-    |  c, Zero -> c                                                                                           (*,-1*)  (*       RegExpPair(c, Zero()): c, *) 
-    |  Weight(w1), Weight(w2) -> Weight (evalPlusSemElem w1 w2)                                               (*,-1*)  (*       RegExpPair(Weight(w1), Weight(w2)): Weight(evalPlusSemElem(w1, w2)), *) 
-    |  Plus(d,Weight(w1)),Weight(w2) -> mkPlus d (mkPlus (Weight w1) (Weight w2))                             (*,-1*)  (*       RegExpPair(Plus(d,Weight(w1)),Weight(w2)): mkPlus(d,mkPlus(Weight(w1),Weight(w2))), *) 
-    |  Weight(w1),Plus(Weight(w2),c) -> mkPlus (mkPlus (Weight w1) (Weight w2)) c                             (*,-1*)  (*       RegExpPair(Weight(w1),Plus(Weight(w2),c)): mkPlus(mkPlus(Weight(w1),Weight(w2)),c), *) 
-    (* |  c, c -> c (*  Plus is idempotent *) (* Can we even do this in OCaml? *) *)                          (*,-1*)  (*       RegExpPair(c, c): c,  // Plus is idempotent *) 
-    |  c, d -> Plus(c,d)                                                                                               (*       RegExpPair(c, d): Plus(c, d) *) 
-;;                                                                                                                     (*  *) 
-let rec mkDot a b =                                                                                                    (* CACHED NOWIDEN regExp mkDot(regExp a, regExp b){ *) 
-(* let p = RegExpPair(a, b) in ( *)                                                                                    (*   let p = RegExpPair(a, b) in ( *) 
-  match a, b with                                                                                                      (*     with(p)( *) 
-    |  Zero, _ -> Zero                                                                                        (*,-1*)  (*       RegExpPair(Zero(), *~): Zero(), *) 
-    |  _, Zero -> Zero                                                                                        (*,-1*)  (*       RegExpPair(~*, Zero()): Zero(), *) 
-    |  One, d -> d                                                                                            (*,-1*)  (*       RegExpPair(One(), d): d, *) 
-    |  c, One -> c                                                                                            (*,-1*)  (*       RegExpPair(c, One()): c, *) 
-    |  Weight(w1), Weight(w2) -> Weight (evalDotSemElem  w1 w2)                                               (*,-1*)  (*       RegExpPair(Weight(w1), Weight(w2)): Weight(evalDotSemElem(w1, w2)), *) 
-    |  Dot(d,Weight(w1)),Weight(w2) -> mkDot d (mkDot (Weight w1) (Weight w2))                                (*,-1*)  (*       RegExpPair(Dot(d,Weight(w1)),Weight(w2)): mkDot(d,mkDot(Weight(w1),Weight(w2))), *) 
-    |  Weight(w1),Dot(Weight(w2),c) -> mkDot (mkDot (Weight w1) (Weight w2)) c                                (*,-1*)  (*       RegExpPair(Weight(w1),Dot(Weight(w2),c)): mkDot(mkDot(Weight(w1),Weight(w2)),c), *) 
-    |  c, d -> Dot(c, d)                                                                                               (*       RegExpPair(c, d): Dot(c, d) *) 
-;;                                                                                                                     (*  *) 
-let rec mkKleene a =                                                                                                   (* CACHED NOWIDEN regExp mkKleene(regExp a) { *) 
-  match a with                                                                                                         (*   with(a) ( *) 
-    | Zero -> One                                                                                             (*,-1*)  (*     Zero(): One(), *) 
-    | One -> One                                                                                              (*,-1*)  (*     One(): One(), *) 
-    | Weight w -> Weight(evalKleeneSemElem w 0)                                                               (*,-1*)  (*     Weight(w): Weight(evalKleeneSemElem(w, a)), *) 
-    | Plus (One,b) -> mkKleene b                                                                              (*,-1*)  (*     Plus(One(),b): mkKleene(b), *) 
-    | Plus (b,One) -> mkKleene b                                                                              (*,-1*)  (*     Plus(b,One()): mkKleene(b), *) 
-    | Kleene (e,k) -> a (*  Kleene-star is idempotent: e** = e* *)                                            (*,-1*)  (*     Kleene(e): a,      // Kleene-star is idempotent: e** = e* *) 
-    | _ -> (incr globalStarCounter; Kleene(a,!globalStarCounter) )                                                     (*     default: Kleene(a) *)
-                                                                                                                       (*  *) 
+    | _ -> Project(c)                                                                                        
+;;                                                                                                           
+let rec mkPlus a b =                                                                                         
+(* let p = RegExpPair(a, b) in ( *)                                                                          
+  match a, b with                                                                                            
+    |  Zero, d -> d                                                                                          
+    |  c, Zero -> c                                                                                          
+    |  Weight(w1), Weight(w2) -> Weight (evalPlusSemElem w1 w2)                                              
+    |  Plus(d,Weight(w1)),Weight(w2) -> mkPlus d (mkPlus (Weight w1) (Weight w2))                            
+    |  Weight(w1),Plus(Weight(w2),c) -> mkPlus (mkPlus (Weight w1) (Weight w2)) c                            
+    (* |  c, c -> c (*  Plus is idempotent *) (* Can we even do this in OCaml? *) *)                         
+    |  c, d -> Plus(c,d)                                                                                     
+;;                                                                                                           
+let rec mkDot a b =                                                                                          
+(* let p = RegExpPair(a, b) in ( *)                                                                          
+  match a, b with                                                                                            
+    |  Zero, _ -> Zero                                                                                       
+    |  _, Zero -> Zero                                                                                       
+    |  One, d -> d                                                                                           
+    |  c, One -> c                                                                                           
+    |  Weight(w1), Weight(w2) -> Weight (evalDotSemElem  w1 w2)                                              
+    |  Dot(d,Weight(w1)),Weight(w2) -> mkDot d (mkDot (Weight w1) (Weight w2))                               
+    |  Weight(w1),Dot(Weight(w2),c) -> mkDot (mkDot (Weight w1) (Weight w2)) c                               
+    |  c, d -> Dot(c, d)                                                                                     
+;;                                                                                                           
+let rec mkKleene a =                                                                                         
+  match a with                                                                                               
+    | Zero -> One                                                                                            
+    | One -> One                                                                                             
+    | Weight w -> Weight(evalKleeneSemElem w 0)                                                              
+    | Plus (One,b) -> mkKleene b                                                                             
+    | Plus (b,One) -> mkKleene b                                                                             
+    | Kleene (e,k) -> a (*  Kleene-star is idempotent: e** = e* *)                                           
+    | _ -> (incr globalStarCounter; Kleene(a,!globalStarCounter) )                                           
+                                                                                                             
 ;;
-(*  regExpT simplifying constructors -------------------------- *)                                                     (* // regExpT simplifying constructors -------------------------- *) 
-                                                                                                                       (*  *) 
-let mkVarT a =                                                                                                         (* CACHED NOWIDEN regExpT mkVarT(INT32 a) { *) 
-    VarT(a)                                                                                                            (*   VarT(a) *) 
-;;                                                                                                                     (*  *) 
-let mkProjectT c =                                                                                                     (* CACHED NOWIDEN regExpT mkProjectT(INT32 a, INT32 b, regExpT c) { *) 
-  match c with                                                                                                         (*   with(c) ( *) 
-    | ZeroT -> ZeroT                                                                                          (*,-1*)  (*     ZeroT() : ZeroT(), *) 
-    | OneT -> OneT                                                                                            (*,-1*)  (*     OneT() : OneT(), *) 
-    | _ -> ProjectT c                                                                                                  (*     default : ProjectT(a,b,c) *) 
-;;                                                                                                                       (*  *) 
-let mkPlusT a b =                                                                                                      (* CACHED NOWIDEN regExpT mkPlusT(regExpT a, regExpT b) { *) 
-(* let p = RegExpTPair(a, b) in ( *)                                                                                   (*   let p = RegExpTPair(a, b) in ( *) 
-  match a, b with                                                                                                      (*     with(p) ( *) 
-    |  ZeroT, d -> d                                                                                          (*,-1*)  (*       RegExpTPair(ZeroT(), d): d, *) 
-    |  c, ZeroT -> c                                                                                          (*,-1*)  (*       RegExpTPair(c, ZeroT()): c, *) 
-    (*|  c, c -> c   *)                                                                                       (*,-1*)  (*       RegExpTPair(c, c): c, *) 
-    |  c, d -> PlusT(c,d)                                                                                              (*       RegExpTPair(c, d): PlusT(c, d) *) 
-;;                                                                                                                     (*  *) 
-let mkTensor a b =                                                                                                     (* CACHED NOWIDEN regExpT mkTensor(regExp a, regExp b) { *) 
-(* let p = RegExpPair(a, b) in ( *)                                                                                    (*   let p = RegExpPair(a, b) in ( *) 
-  match a, b with                                                                                                      (*     with(p) ( *) 
-    |  Zero, d -> ZeroT                                                                                       (*,-1*)  (*       RegExpPair(Zero(), d): ZeroT(), *) 
-    |  c, Zero -> ZeroT                                                                                       (*,-1*)  (*       RegExpPair(c, Zero()): ZeroT(), *) 
-    |  One, One -> OneT                                                                                       (*,-1*)  (*       RegExpPair(One(), One()): OneT(), *) 
-    |  c, d -> Tensor(c,d)                                                                                             (*       RegExpPair(c, d): Tensor(c, d) *) 
-;;                                                                                                                     (*  *) 
-let rec mkDotT a b =                                                                                                       (* CACHED NOWIDEN regExpT mkDotT(regExpT a, regExpT b) { *) 
-(* let p = RegExpTPair(a, b) in ( *)                                                                                   (*   let p = RegExpTPair(a, b) in ( *) 
-  match a, b with                                                                                                      (*     with(p) ( *) 
-    |  ZeroT, _ -> ZeroT                                                                                      (*,-1*)  (*       RegExpTPair(ZeroT(), *~): ZeroT(), *) 
-    |  _, ZeroT -> ZeroT                                                                                      (*,-1*)  (*       RegExpTPair(~*, ZeroT()): ZeroT(), *) 
-    |  OneT, d -> d                                                                                           (*,-1*)  (*       RegExpTPair(OneT(), d): d, *) 
-    |  c, OneT -> c                                                                                           (*,-1*)  (*       RegExpTPair(c, OneT()): c, *) 
-    |  Tensor(w,x), Tensor(y,z) ->                                                                            (*,>*)   (*       RegExpTPair(Tensor(w,x), Tensor(y,z)): *) 
-        mkTensor (mkDot y w) (mkDot x z)                                                                      (*,-2*)  (*         mkTensor(mkDot(y,w), mkDot(x,z)), *) 
-    |  DotT(d,Tensor(w,x)),Tensor(y,z) ->                                                                     (*,>*)   (*       RegExpTPair(DotT(d,Tensor(w,x)),Tensor(y,z)): *) 
-        mkDotT d (mkTensor (mkDot y w) (mkDot x z))                                                           (*,-2*)  (*         mkDotT(d,mkTensor(mkDot(y,w), mkDot(x,z))), *) 
-    |  Tensor(w,x),DotT(Tensor(y,z),c) ->                                                                     (*,>*)   (*       RegExpTPair(Tensor(w,x),DotT(Tensor(y,z),c)): *) 
-        mkDotT (mkTensor (mkDot y w) (mkDot x z)) c                                                           (*,-2*)  (*         mkDotT(mkTensor(mkDot(y,w), mkDot(x,z)),c), *) 
-    |  c, d -> DotT(c,d)                                                                                               (*       RegExpTPair(c, d): DotT(c, d) *) 
-;;                                                                                                                     (*  *) 
-let rec mkKleeneT a =                                                                                                      (* CACHED NOWIDEN regExpT mkKleeneT(regExpT a) { *) 
-  match a with                                                                                                         (*   with(a) ( *) 
-    | ZeroT -> OneT                                                                                           (*,-1*)  (*     ZeroT(): OneT(), *) 
-    | OneT -> OneT                                                                                            (*,-1*)  (*     OneT(): OneT(), *) 
-    | PlusT (OneT,b) -> mkKleeneT b                                                                           (*,-1*)  (*     PlusT(OneT(),b): mkKleeneT(b), *) 
-    | PlusT (b,OneT) -> mkKleeneT b                                                                           (*,-1*)  (*     PlusT(b,OneT()): mkKleeneT(b), *) 
-    | KleeneT (e,k) -> a (*  Kleene-star is idempotent: e** = e* *)                                           (*,-1*)  (*     KleeneT(e): a,     // Kleene-star is idempotent: e** = e* *) 
-    | _ -> (incr globalStarCounter; KleeneT(a,!globalStarCounter))                                                     (*     default: KleeneT(a) *) 
-;;                                                                                                                     (*  *) 
+(*  regExpT simplifying constructors -------------------------- *)                                           
+                                                                                                             
+let mkVarT a =                                                                                               
+    VarT(a)                                                                                                  
+;;                                                                                                           
+let mkProjectT c =                                                                                           
+  match c with                                                                                               
+    | ZeroT -> ZeroT                                                                                         
+    | OneT -> OneT                                                                                           
+    | _ -> ProjectT c                                                                                        
+;;                                                                                                           
+let mkPlusT a b =                                                                                            
+(* let p = RegExpTPair(a, b) in ( *)                                                                         
+  match a, b with                                                                                            
+    |  ZeroT, d -> d                                                                                         
+    |  c, ZeroT -> c                                                                                         
+    (*|  c, c -> c   *)                                                                                      
+    |  c, d -> PlusT(c,d)                                                                                    
+;;                                                                                                           
+let mkTensor a b =                                                                                           
+(* let p = RegExpPair(a, b) in ( *)                                                                          
+  match a, b with                                                                                            
+    |  Zero, d -> ZeroT                                                                                      
+    |  c, Zero -> ZeroT                                                                                      
+    |  One, One -> OneT                                                                                      
+    |  c, d -> Tensor(c,d)                                                                                   
+;;                                                                                                           
+let rec mkDotT a b =                                                                                         
+(* let p = RegExpTPair(a, b) in ( *)                                                                         
+  match a, b with                                                                                            
+    |  ZeroT, _ -> ZeroT                                                                                     
+    |  _, ZeroT -> ZeroT                                                                                     
+    |  OneT, d -> d                                                                                          
+    |  c, OneT -> c                                                                                          
+    |  Tensor(w,x), Tensor(y,z) ->                                                                           
+        mkTensor (mkDot y w) (mkDot x z)                                                                     
+    |  DotT(d,Tensor(w,x)),Tensor(y,z) ->                                                                    
+        mkDotT d (mkTensor (mkDot y w) (mkDot x z))                                                          
+    |  Tensor(w,x),DotT(Tensor(y,z),c) ->                                                                    
+        mkDotT (mkTensor (mkDot y w) (mkDot x z)) c                                                          
+    |  c, d -> DotT(c,d)                                                                                     
+;;                                                                                                           
+let rec mkKleeneT a =                                                                                        
+  match a with                                                                                               
+    | ZeroT -> OneT                                                                                          
+    | OneT -> OneT                                                                                           
+    | PlusT (OneT,b) -> mkKleeneT b                                                                          
+    | PlusT (b,OneT) -> mkKleeneT b                                                                          
+    | KleeneT (e,k) -> a (*  Kleene-star is idempotent: e** = e* *)                                          
+    | _ -> (incr globalStarCounter; KleeneT(a,!globalStarCounter))                                           
+;;                                                                                                           
 
 (* mutually recursive simplifying constructors : *)
 
-let rec mkDetensor a b =                                                                                               (* CACHED NOWIDEN regExp mkDetensor(regExp a, regExpT b) { *) 
-(* let p = RegExpUTPair(a, b) in ( *)                                                                                  (*   let p = RegExpUTPair(a, b) in ( *) 
-  match a, b with                                                                                                      (*     with(p) ( *) 
-    |  Zero, _ -> Zero                                                                                        (*,-1*)  (*       RegExpUTPair(Zero(), *~): Zero(), *) 
-    |  _, ZeroT -> Zero                                                                                       (*,-1*)  (*       RegExpUTPair(~*, ZeroT()): Zero(), *) 
-    |  u, OneT -> u                                                                                           (*,-1*)  (*       RegExpUTPair(u, OneT()): u, *) 
-    |  Weight(wu), Tensor(Weight(wl),Weight(wr)) ->                                                           (*,>*)   (*       RegExpUTPair(Weight(wu), Tensor(Weight(wl),Weight(wr))): *) 
-        let evalUChild = evalRegExp a and                                                                     (*,?*)   (*         let evalUChild = evalRegExp(a) ; *) 
-            evalTChild = evalT b in                                                                           (*,?*)   (*             evalTChild = evalT(b) ; *) 
-        let oneTensorU = evalTensor (getOneWt ()) evalUChild                                                  (*,?*)   (*             oneTensorU = evalTensor(getOneWt(), evalUChild) *) 
-        in Weight (detensor (evalDotSemElemT oneTensorU evalTChild))                                          (*,-2*)  (*         in (Weight(detensorTranspose(evalDotSemElemT(oneTensorU, evalTChild)))), *) 
-(* RegExpUTPair(Weight(wu), Tensor(Weight(wl),rChild)): *)                                                             (*       //RegExpUTPair(Weight(wu), Tensor(Weight(wl),rChild)): *) 
-(*   Detensor(One(), Tensor(mkDot(Weight(wl),a),rChild)), *)                                                           (*       //  Detensor(One(), Tensor(mkDot(Weight(wl),a),rChild)), *) 
-(* RegExpUTPair(Weight(wu), Tensor(lChild,Weight(wr))): *)                                                             (*       //RegExpUTPair(Weight(wu), Tensor(lChild,Weight(wr))): *) 
-(*   Detensor(One(), Tensor(lChild, mkDot(a,Weight(wr)))), *)                                                          (*       //  Detensor(One(), Tensor(lChild, mkDot(a,Weight(wr)))), *) 
-    |  u, t -> Detensor(u, t)                                                                                          (*       RegExpUTPair(u, t): Detensor(u, t) *) 
-                                                                                                                       (*  *) 
+let rec mkDetensor a b =                                                                                     
+(* let p = RegExpUTPair(a, b) in ( *)                                                                        
+  match a, b with                                                                                            
+    |  Zero, _ -> Zero                                                                                       
+    |  _, ZeroT -> Zero                                                                                      
+    |  u, OneT -> u                                                                                          
+    |  Weight(wu), Tensor(Weight(wl),Weight(wr)) ->                                                          
+        let evalUChild = evalRegExp a and                                                                    
+            evalTChild = evalT b in                                                                          
+        let oneTensorU = evalTensor (getOneWt ()) evalUChild                                                 
+        in Weight (detensor (evalDotSemElemT oneTensorU evalTChild))                                         
+(* RegExpUTPair(Weight(wu), Tensor(Weight(wl),rChild)): *)                                                   
+(*   Detensor(One(), Tensor(mkDot(Weight(wl),a),rChild)), *)                                                 
+(* RegExpUTPair(Weight(wu), Tensor(lChild,Weight(wr))): *)                                                   
+(*   Detensor(One(), Tensor(lChild, mkDot(a,Weight(wr)))), *)                                                
+    |  u, t -> Detensor(u, t)                                                                                
+                                                                                                             
 
-(*  ---- evaluation functions ---- *)                                                                                  (* // ---- evaluation functions ---- *) 
-                                                                                                                       (*  *) 
-(*  Note: This version of eval does not take an assignment as a parameter; *)                                          (* // Note: This version of eval does not take an assignment as a parameter; *) 
-(*    instead, it expects the client to provide an implementation of *)                                                (* //   instead, it expects the client to provide an implementation of *) 
-(*    evalVarSemElem(v), which is expected to know how to retrieve values from *)                                      (* //   evalVarSemElem(v), which is expected to know how to retrieve values from *) 
-(*    the desired assignment, perhaps by looking up the variable number in a *)                                        (* //   the desired assignment, perhaps by looking up the variable number in a *) 
-(*    global assignment variable. *)                                                                                   (* //   global assignment variable. *) 
+(*  ---- evaluation functions ---- *)                                                                        
+                                                                                                             
+(*  Note: This version of eval does not take an assignment as a parameter; *)                                
+(*    instead, it expects the client to provide an implementation of *)                                      
+(*    evalVarSemElem(v), which is expected to know how to retrieve values from *)                            
+(*    the desired assignment, perhaps by looking up the variable number in a *)                              
+(*    global assignment variable. *)                                                                         
 
 
 (* ALSO CHANGE THIS LET REC: *)
@@ -232,47 +232,47 @@ and evalRegExp e =
                        debugEvalCache "cache MISS in eval U cache\n";
                        w)
 
-and evalRegExpCacheMiss e =                                                                                            (* CACHED NOWIDEN sem_elem_wrapper evalRegExp(regExp e){ *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Var v -> evalVarSemElem v                                                                               (*,-1*)  (*     Var(v): evalVarSemElem(v), *) 
-    | Zero -> getZeroWt ()                                                                                    (*,-1*)  (*     Zero(): getZeroWt(), *) 
-    | One -> getOneWt ()                                                                                      (*,-1*)  (*     One(): getOneWt(), *) 
-    | Weight weight -> weight                                                                                 (*,-1*)  (*     Weight(weight): weight, *) 
-    | Project(child) ->                                                                                       (*,>*)   (*     Project(a,b,child): *) 
-      let evalChild = evalRegExp child                                                                        (*,?*)   (*       let evalChild = evalRegExp(child) *) 
-      in  evalProjectSemElem evalChild                                                                        (*,-2*)  (*       in (evalProjectSemElem(a,b,evalChild)), *) 
-    | Plus(lChild, rChild) ->                                                                                 (*,>*)   (*     Plus(lChild, rChild): *) 
-      let evalLChild = evalRegExp lChild and                                                                  (*,?*)   (*       let evalLChild = evalRegExp(lChild); *) 
-          evalRChild = evalRegExp rChild                                                                      (*,?*)   (*           evalRChild = evalRegExp(rChild) *) 
-      in evalPlusSemElem evalLChild evalRChild                                                                (*,-2*)  (*       in (evalPlusSemElem(evalLChild, evalRChild)), *) 
-    | Dot(lChild, rChild) ->                                                                                  (*,>*)   (*     Dot(lChild, rChild): *) 
-      let evalLChild = evalRegExp lChild and                                                                  (*,?*)   (*       let evalLChild = evalRegExp(lChild); *) 
-          evalRChild = evalRegExp rChild                                                                      (*,?*)   (*           evalRChild = evalRegExp(rChild) *) 
-      in evalDotSemElem evalLChild evalRChild                                                                 (*,-2*)  (*       in (evalDotSemElem(evalLChild, evalRChild)), *) 
-    | Kleene(child,starKey) ->                                                                                (*,>*)   (*     Kleene(child): *) 
-      let evalchild = evalRegExp child                                                                        (*,?*)   (*       let evalchild = evalRegExp(child) *) 
-      in evalKleeneSemElem evalchild starKey                                                                  (*,-2*)  (*       in (evalKleeneSemElem(evalchild, child)), *) 
-    | Detensor(uChild,tChild) ->                                                                              (*,>*)   (*     Detensor(uChild,tChild): *) 
-(*  Note: We could have a callback for evalDetensor in the future. *)                                         (*,?*)   (*       // Note: We could have a callback for evalDetensor in the future. *) 
-(*  *)                                                                                                        (*,?*)   (*       // *) 
-(*  IDEA: return DetensorTranspose(DotT(Tensor(One(),u),t)) *)                                                (*,?*)   (*       // IDEA: return DetensorTranspose(DotT(Tensor(One(),u),t)) *) 
-(*  *)                                                                                                        (*,?*)   (*       // *) 
-      let evalUChild = evalRegExp uChild and                                                                  (*,?*)   (*       let evalUChild = evalRegExp(uChild) ; *) 
-          evalTChild = evalT tChild in                                                                        (*,?*)   (*           evalTChild = evalT(tChild) ; *) 
-      let oneTensorU = evalTensor (getOneWt ()) evalUChild                                                    (*,?*)   (*           oneTensorU = evalTensor(getOneWt(), evalUChild) *) 
-      in detensor (evalDotSemElemT oneTensorU evalTChild)                                                     (*,?*)   (*       in (detensorTranspose(evalDotSemElemT(oneTensorU, evalTChild))) *) 
-                                                                                                                       (*  *) 
-(*and detensor a =                                                                                                     (* CACHED NOWIDEN sem_elem_wrapper detensor(sem_elem_wrapper a){ *) 
-    detensorTranspose(a)   *)                                                                                          (*   detensorTranspose(a) *) 
-                                                                                                                       (*  *) 
-(*  Note: This version of eval does not take an assignment as a parameter; *)                                          (* // Note: This version of eval does not take an assignment as a parameter; *) 
-(*    instead, it expects the client to provide an implementation of *)                                                (* //   instead, it expects the client to provide an implementation of *) 
-(*    evalVarSemElemT(v), which is expected to know how to retrieve values from *)                                     (* //   evalVarSemElemT(v), which is expected to know how to retrieve values from *) 
-(*    the desired assignment, perhaps by looking up the variable number v in a *)                                      (* //   the desired assignment, perhaps by looking up the variable number v in a *) 
-(*    global assignment variable.  However, in the Newton-CRA usage of this *)                                         (* //   global assignment variable.  However, in the Newton-CRA usage of this *) 
-(*    function, there were no tensored variables, so evalVarSemElemT was never *)                                      (* //   function, there were no tensored variables, so evalVarSemElemT was never *) 
-(*    used.  However, this function does call evalRegExp, which has an analogous *)                                    (* //   used.  However, this function does call evalRegExp, which has an analogous *) 
-(*    issue, and the analogous callback function evalVarSemElem(v) was used. *)                                        (* //   issue, and the analogous callback function evalVarSemElem(v) was used. *) 
+and evalRegExpCacheMiss e =                                                                                  
+  match e with                                                                                               
+    | Var v -> evalVarSemElem v                                                                              
+    | Zero -> getZeroWt ()                                                                                   
+    | One -> getOneWt ()                                                                                     
+    | Weight weight -> weight                                                                                
+    | Project(child) ->                                                                                      
+      let evalChild = evalRegExp child                                                                       
+      in  evalProjectSemElem evalChild                                                                       
+    | Plus(lChild, rChild) ->                                                                                
+      let evalLChild = evalRegExp lChild and                                                                 
+          evalRChild = evalRegExp rChild                                                                     
+      in evalPlusSemElem evalLChild evalRChild                                                               
+    | Dot(lChild, rChild) ->                                                                                 
+      let evalLChild = evalRegExp lChild and                                                                 
+          evalRChild = evalRegExp rChild                                                                     
+      in evalDotSemElem evalLChild evalRChild                                                                
+    | Kleene(child,starKey) ->                                                                               
+      let evalchild = evalRegExp child                                                                       
+      in evalKleeneSemElem evalchild starKey                                                                 
+    | Detensor(uChild,tChild) ->                                                                             
+(*  Note: We could have a callback for evalDetensor in the future. *)                                        
+(*  *)                                                                                                       
+(*  IDEA: return DetensorTranspose(DotT(Tensor(One(),u),t)) *)                                               
+(*  *)                                                                                                       
+      let evalUChild = evalRegExp uChild and                                                                 
+          evalTChild = evalT tChild in                                                                       
+      let oneTensorU = evalTensor (getOneWt ()) evalUChild                                                   
+      in detensor (evalDotSemElemT oneTensorU evalTChild)                                                    
+                                                                                                             
+(*and detensor a =                                                                                           
+    detensorTranspose(a)   *)                                                                                
+                                                                                                             
+(*  Note: This version of eval does not take an assignment as a parameter; *)                                
+(*    instead, it expects the client to provide an implementation of *)                                      
+(*    evalVarSemElemT(v), which is expected to know how to retrieve values from *)                           
+(*    the desired assignment, perhaps by looking up the variable number v in a *)                            
+(*    global assignment variable.  However, in the Newton-CRA usage of this *)                               
+(*    function, there were no tensored variables, so evalVarSemElemT was never *)                            
+(*    used.  However, this function does call evalRegExp, which has an analogous *)                          
+(*    issue, and the analogous callback function evalVarSemElem(v) was used. *)                              
 
 and evalT e =
     try let w = Hashtbl.find evalTCache e in (debugEvalCache "cache HIT  in eval T cache\n"; w)
@@ -282,152 +282,152 @@ and evalT e =
                        debugEvalCache "cache MISS in eval T cache\n";
                        w)
 
-and evalTCacheMiss e =                                                                                                 (* CACHED NOWIDEN sem_elem_wrapper evalT(regExpT e){ *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | VarT v -> evalVarSemElemT v                                                                             (*,-1*)  (*     VarT(v): evalVarSemElemT(v), *) 
-(* placeholder, should never be evaluated due to our *)                                                                (*         //placeholder, should never be evaluated due to our *) 
-(*   use case of evalT - there are no varT types *)                                                                    (*         //  use case of evalT - there are no varT types *) 
-    | ZeroT -> getZeroTWt ()                                                                                  (*,-1*)  (*     ZeroT(): getZeroTWt(), *) 
-    | OneT -> getOneTWt ()                                                                                    (*,-1*)  (*     OneT(): getOneTWt(), *) 
-    | ProjectT(child) ->                                                                                      (*,>*)   (*     ProjectT(v1,v2,child): *) 
-      let c = evalT child                                                                                     (*,?*)   (*       let c = evalT(child) *) 
-      in evalProjectSemElemT c                                                                                (*,-2*)  (*       in (evalProjectSemElemT(v1, v2,c)), *) 
-    | PlusT(lChild,rChild) ->                                                                                 (*,>*)   (*     PlusT(lChild,rChild): *) 
-      let lVal = evalT lChild and                                                                             (*,?*)   (*       let lVal = evalT(lChild); *) 
-          rVal = evalT rChild                                                                                 (*,?*)   (*           rVal = evalT(rChild) *) 
-      in evalPlusSemElemT lVal rVal                                                                           (*,-2*)  (*       in (evalPlusSemElemT(lVal,rVal)), *) 
-    | DotT(lChild,rChild) ->                                                                                  (*,>*)   (*     DotT(lChild,rChild): *) 
-      let lVal = evalT lChild and                                                                             (*,?*)   (*       let lVal = evalT(lChild); *) 
-          rVal = evalT rChild                                                                                 (*,?*)   (*           rVal = evalT(rChild) *) 
-      in evalDotSemElemT lVal rVal                                                                            (*,-2*)  (*       in (evalDotSemElemT(lVal,rVal)), *) 
-    | KleeneT(child,starKey) ->                                                                               (*,>*)   (*     KleeneT(child): *) 
-      let cVal = evalT child                                                                                  (*,?*)   (*       let cVal = evalT(child) *) 
-      in  evalKleeneSemElemT cVal starKey                                                                     (*,-2*)  (*       in (evalKleeneSemElemT(cVal, child)), *) 
-    | Tensor(lChild, rChild) ->                                                                               (*,>*)   (*     Tensor(lChild, rChild): *) 
-      let lVal = evalRegExp lChild and                                                                        (*,?*)   (*       let lVal = evalRegExp(lChild); *) 
-          rVal = evalRegExp rChild                                                                            (*,?*)   (*           rVal = evalRegExp(rChild) *) 
-      in  evalTensor lVal rVal                                                                                (*,?*)   (*       in (evalTensor(lVal,rVal)) *) 
-;;                                                                                                                     (*  *) 
-(*  ---- core functions of ICRA regular expression transformation ---- *)                                              (* // ---- core functions of ICRA regular expression transformation ---- *) 
-                                                                                                                       (*  *) 
-(*  Substitute s for free occurrences of x in e, where "free" occurrences are *)                                       (* // Substitute s for free occurrences of x in e, where "free" occurrences are *) 
-(*    defined to be those that do not occur under a star. *)                                                           (* //   defined to be those that do not occur under a star. *) 
-(*  NOTE: In the Newton-CRA project, we could have avoided calling into *)                                             (* // NOTE: In the Newton-CRA project, we could have avoided calling into *) 
-(*    substFreeT in the Detensor case because we knew that the expression *)                                           (* //   substFreeT in the Detensor case because we knew that the expression *) 
-(*    e is "normal" in the terminology of the POPL 2017 submission, i.e., that *)                                      (* //   e is "normal" in the terminology of the POPL 2017 submission, i.e., that *) 
-(*    the right child of every Detensor subexpression of e is a KleeneT. *)                                            (* //   the right child of every Detensor subexpression of e is a KleeneT. *) 
-let rec substFree s x e =                                                                                              (* CACHED NOWIDEN regExp substFree(regExp s, INT32 x, regExp e){ *) 
-  match e with                                                                                                         (*   with(e) ( *) 
-    | Var v -> if (v = x) then s else e                                                                       (*,-1*)  (*     Var(v): if (v = x) then s else e, *) 
-    | Zero -> e                                                                                               (*,-1*)  (*     Zero(): e, *) 
-    | One -> e                                                                                                (*,-1*)  (*     One(): e, *) 
-    | Weight weight -> e                                                                                      (*,-1*)  (*     Weight(weight): e, *) 
-    | Project (child) -> mkProject (substFree s x child)                                                      (*,-1*)  (*     Project(a,b,child): mkProject(a,b,substFree(s,x,child)), *) 
-    | Plus (lChild, rChild) -> mkPlus (substFree s x lChild) (substFree s x rChild)                           (*,-1*)  (*     Plus(lChild, rChild): mkPlus(substFree(s,x,lChild),substFree(s,x,rChild)), *) 
-    | Dot (lChild, rChild) -> mkDot (substFree s x lChild) (substFree s x rChild)                             (*,-1*)  (*     Dot(lChild, rChild): mkDot(substFree(s,x,lChild),substFree(s,x,rChild)), *) 
-    | Kleene (child, starKey) -> e                                                                            (*,-1*)  (*     Kleene(child): e, *) 
-    | Detensor (uChild,tChild) ->                                                                             (*,>*)   (*     Detensor(uChild,tChild): *) 
-            mkDetensor (substFree s x uChild) (substFreeT s x tChild)                                         (*,?*)   (*       mkDetensor(substFree(s,x,uChild),substFreeT(s,x,tChild)) *) 
-(* Detensor(uChild,tChild): *)                                                                                (*,?*)   (*   //Detensor(uChild,tChild): *) 
-(*   mkDetensor(substFree(s,x,uChild),tChild)   assume e is normal *)                                         (*,?*)   (*   //  mkDetensor(substFree(s,x,uChild),tChild) // assume e is normal *) 
-                                                                                                                       (*  *) 
-(*  Substitute s for free occurrences of the variable x in e, where x is *)                                            (* // Substitute s for free occurrences of the variable x in e, where x is *) 
-(*    interpreted as the number of some untensored variable, i.e., we will not *)                                      (* //   interpreted as the number of some untensored variable, i.e., we will not *) 
-(*    substitute for occurrences of the tensored variable with number x. *)                                            (* //   substitute for occurrences of the tensored variable with number x. *) 
-and substFreeT s x e =                                                                                                 (* CACHED NOWIDEN regExpT substFreeT(regExp s, INT32 x, regExpT e){ *) 
-  match e with                                                                                                         (*   with(e) ( *) 
-    | VarT v -> e                                                                                             (*,-1*)  (*     VarT(v): e, *) 
-    | ZeroT -> e                                                                                              (*,-1*)  (*     ZeroT(): e, *) 
-    | OneT -> e                                                                                               (*,-1*)  (*     OneT(): e, *) 
-    | ProjectT child -> mkProjectT (substFreeT s x child)                                                     (*,-1*)  (*     ProjectT(a,b,child): mkProjectT(a,b,substFreeT(s,x,child)), *) 
-    | PlusT(lChild, rChild) -> mkPlusT (substFreeT s x lChild) (substFreeT s x rChild)                        (*,-1*)  (*     PlusT(lChild, rChild): mkPlusT(substFreeT(s,x,lChild),substFreeT(s,x,rChild)), *) 
-    | DotT(lChild, rChild) -> mkDotT (substFreeT s x lChild) (substFreeT s x rChild)                          (*,-1*)  (*     DotT(lChild, rChild): mkDotT(substFreeT(s,x,lChild),substFreeT(s,x,rChild)), *) 
-    | KleeneT(child, starKey) -> e                                                                            (*,-1*)  (*     KleeneT(child): e, *) 
-    | Tensor(lChild, rChild) -> mkTensor (substFree s x lChild) (substFree s x rChild)                                 (*     Tensor(lChild,rChild): mkTensor(substFree(s,x,lChild),substFree(s,x,rChild)) *) 
+and evalTCacheMiss e =                                                                                       
+  match e with                                                                                               
+    | VarT v -> evalVarSemElemT v                                                                            
+(* placeholder, should never be evaluated due to our *)                                                      
+(*   use case of evalT - there are no varT types *)                                                          
+    | ZeroT -> getZeroTWt ()                                                                                 
+    | OneT -> getOneTWt ()                                                                                   
+    | ProjectT(child) ->                                                                                     
+      let c = evalT child                                                                                    
+      in evalProjectSemElemT c                                                                               
+    | PlusT(lChild,rChild) ->                                                                                
+      let lVal = evalT lChild and                                                                            
+          rVal = evalT rChild                                                                                
+      in evalPlusSemElemT lVal rVal                                                                          
+    | DotT(lChild,rChild) ->                                                                                 
+      let lVal = evalT lChild and                                                                            
+          rVal = evalT rChild                                                                                
+      in evalDotSemElemT lVal rVal                                                                           
+    | KleeneT(child,starKey) ->                                                                              
+      let cVal = evalT child                                                                                 
+      in  evalKleeneSemElemT cVal starKey                                                                    
+    | Tensor(lChild, rChild) ->                                                                              
+      let lVal = evalRegExp lChild and                                                                       
+          rVal = evalRegExp rChild                                                                           
+      in  evalTensor lVal rVal                                                                               
+;;                                                                                                           
+(*  ---- core functions of ICRA regular expression transformation ---- *)                                    
+                                                                                                             
+(*  Substitute s for free occurrences of x in e, where "free" occurrences are *)                             
+(*    defined to be those that do not occur under a star. *)                                                 
+(*  NOTE: In the Newton-CRA project, we could have avoided calling into *)                                   
+(*    substFreeT in the Detensor case because we knew that the expression *)                                 
+(*    e is "normal" in the terminology of the POPL 2017 submission, i.e., that *)                            
+(*    the right child of every Detensor subexpression of e is a KleeneT. *)                                  
+let rec substFree s x e =                                                                                    
+  match e with                                                                                               
+    | Var v -> if (v = x) then s else e                                                                      
+    | Zero -> e                                                                                              
+    | One -> e                                                                                               
+    | Weight weight -> e                                                                                     
+    | Project (child) -> mkProject (substFree s x child)                                                     
+    | Plus (lChild, rChild) -> mkPlus (substFree s x lChild) (substFree s x rChild)                          
+    | Dot (lChild, rChild) -> mkDot (substFree s x lChild) (substFree s x rChild)                            
+    | Kleene (child, starKey) -> e                                                                           
+    | Detensor (uChild,tChild) ->                                                                            
+            mkDetensor (substFree s x uChild) (substFreeT s x tChild)                                        
+(* Detensor(uChild,tChild): *)                                                                               
+(*   mkDetensor(substFree(s,x,uChild),tChild)   assume e is normal *)                                        
+                                                                                                             
+(*  Substitute s for free occurrences of the variable x in e, where x is *)                                  
+(*    interpreted as the number of some untensored variable, i.e., we will not *)                            
+(*    substitute for occurrences of the tensored variable with number x. *)                                  
+and substFreeT s x e =                                                                                       
+  match e with                                                                                               
+    | VarT v -> e                                                                                            
+    | ZeroT -> e                                                                                             
+    | OneT -> e                                                                                              
+    | ProjectT child -> mkProjectT (substFreeT s x child)                                                    
+    | PlusT(lChild, rChild) -> mkPlusT (substFreeT s x lChild) (substFreeT s x rChild)                       
+    | DotT(lChild, rChild) -> mkDotT (substFreeT s x lChild) (substFreeT s x rChild)                         
+    | KleeneT(child, starKey) -> e                                                                           
+    | Tensor(lChild, rChild) -> mkTensor (substFree s x lChild) (substFree s x rChild)                       
 ;;
 
-let rec factorAux x e =                                                                                                (* CACHED NOWIDEN regExpUTPair factorAux(INT32 x, regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Var v -> if (v = x) then (Zero, OneT) else (e, ZeroT)                                                   (*,-1*)  (*     Var(v): if (v = x) then RegExpUTPair(Zero(), OneT()) else RegExpUTPair(e, ZeroT()), *) 
-    | Zero -> (Zero, ZeroT)                                                                                   (*,-1*)  (*     Zero(): RegExpUTPair(Zero(), ZeroT()), *) 
-    | One -> (One, ZeroT)                                                                                     (*,-1*)  (*     One(): RegExpUTPair(One(), ZeroT()), *) 
-    | Weight weight -> (e, ZeroT)                                                                             (*,-1*)  (*     Weight(weight): RegExpUTPair(e, ZeroT()), *) 
-    | Project child ->                                                                                        (*,>*)   (*     Project(a,b,child): *) 
-      let u, t = (factorAux x child) in                                                                       (*,?*)   (*       let childPair = factorAux(x, child) *) 
-      (*match childPair with                                                                                  (*,?*)   (*       in (with(childPair)( *) 
-        |  u,t -> *)                                                                                          (*,>*)   (*         RegExpUTPair(u,t) : *) 
-      (mkProject u, mkProjectT t)                                                                             (*,?*)   (*           RegExpUTPair(mkProject(a,b,u), mkProjectT(a,b,t)) *) 
-    | Plus (lChild, rChild) ->                                                                                (*,>*)   (*     Plus(lChild, rChild): *) 
-      let lu,lt = (factorAux x lChild) and                                                                    (*,?*)   (*       let lChildPair = factorAux(x, lChild) ; *) 
-          ru,rt = (factorAux x rChild) in                                                                     (*,?*)   (*           rChildPair = factorAux(x, rChild) *) 
-  (*match lChildPair with                                                                                     (*,?*)   (*       in (with(lChildPair)( *) 
-    |  lu,lt ->                                                                                               (*,>*)   (*         RegExpUTPair(lu,lt) : *) 
-  match rChildPair with                                                                                       (*,?*)   (*           with(rChildPair)( *) 
-    |  ru,rt -> *)                                                                                            (*,>*)   (*             RegExpUTPair(ru,rt) : *) 
-              ((mkPlus lu ru), (mkPlusT lt rt))                                                               (*,?*)   (*               RegExpUTPair(mkPlus(lu,ru), mkPlusT(lt,rt)) *) 
-    | Dot (lChild, rChild) ->                                                                                 (*,>*)   (*     Dot(lChild, rChild): *) 
-      let lu,lt = (factorAux x lChild) and                                                                    (*,?*)   (*       let lChildPair = factorAux(x, lChild) ; *) 
-          ru,rt = (factorAux x rChild) in                                                                     (*,?*)   (*           rChildPair = factorAux(x, rChild) *) 
-    (*  let lChildPair = factorAux(x, lChild)  and                                                            (*,?*)   (*       let lChildPair = factorAux(x, lChild) ; *) 
-          rChildPair = factorAux(x, rChild)  *)                                                               (*,?*)   (*           rChildPair = factorAux(x, rChild) *) 
-  (*match lChildPair with                                                                                     (*,?*)   (*       in (with(lChildPair)( *) 
-    |  lu,lt ->                                                                                               (*,>*)   (*         RegExpUTPair(lu,lt) : *) 
-  match rChildPair with                                                                                       (*,?*)   (*           with(rChildPair)( *) 
-    |  ru,rt -> *)                                                                                            (*,>*)   (*             RegExpUTPair(ru,rt) : *) 
-              (                                                                                               (*,?*)   (*               RegExpUTPair( *) 
-                (mkDot lu ru)                                                                                 (*,-2*)  (*                 mkDot(lu,ru), *) 
+let rec factorAux x e =                                                                                      
+  match e with                                                                                               
+    | Var v -> if (v = x) then (Zero, OneT) else (e, ZeroT)                                                  
+    | Zero -> (Zero, ZeroT)                                                                                  
+    | One -> (One, ZeroT)                                                                                    
+    | Weight weight -> (e, ZeroT)                                                                            
+    | Project child ->                                                                                       
+      let u, t = (factorAux x child) in                                                                      
+      (*match childPair with                                                                                 
+        |  u,t -> *)                                                                                         
+      (mkProject u, mkProjectT t)                                                                            
+    | Plus (lChild, rChild) ->                                                                               
+      let lu,lt = (factorAux x lChild) and                                                                   
+          ru,rt = (factorAux x rChild) in                                                                    
+  (*match lChildPair with                                                                                    
+    |  lu,lt ->                                                                                              
+  match rChildPair with                                                                                      
+    |  ru,rt -> *)                                                                                           
+              ((mkPlus lu ru), (mkPlusT lt rt))                                                              
+    | Dot (lChild, rChild) ->                                                                                
+      let lu,lt = (factorAux x lChild) and                                                                   
+          ru,rt = (factorAux x rChild) in                                                                    
+    (*  let lChildPair = factorAux(x, lChild)  and                                                           
+          rChildPair = factorAux(x, rChild)  *)                                                              
+  (*match lChildPair with                                                                                    
+    |  lu,lt ->                                                                                              
+  match rChildPair with                                                                                      
+    |  ru,rt -> *)                                                                                           
+              (                                                                                              
+                (mkDot lu ru)                                                                                
                 ,
-                (mkPlusT                                                                                               (*                 mkPlusT( *) 
-                  (mkDotT lt (mkTensor One ru))                                                                        (*                   mkDotT(lt, mkTensor(One(), ru)), *) 
-                  (mkDotT rt (mkTensor lChild One))                                                                    (*                   mkDotT(rt, mkTensor(lChild, One())) *) 
+                (mkPlusT                                                                                     
+                  (mkDotT lt (mkTensor One ru))                                                              
+                  (mkDotT rt (mkTensor lChild One))                                                          
                 )
               )
-    | Kleene (child,starKey) -> (e, ZeroT)                                                                    (*,-1*)  (*     Kleene(child): RegExpUTPair(e, ZeroT()), *) 
-    | Detensor (uChild,tChild) ->                                                                             (*,>*)   (*     Detensor(uChild,tChild): *) 
-      let uu,ut = (factorAux x uChild)                                                                        (*,?*)   (*       let uChildPair = factorAux(x, uChild) *) 
-  (*match uChildPair with                                                                                     (*,?*)   (*       in (with(uChildPair)( *) 
-    |  uu,ut ->  *)                                                                                           (*,>*)   (*         RegExpUTPair(uu,ut): *) 
-      in  ((mkDetensor uu tChild),                                                                            (*,-2*)  (*           RegExpUTPair(mkDetensor(uu,tChild), *) 
-           (mkDotT ut tChild));;                                                                                       (*                        mkDotT(ut,tChild)) *) 
-                                                                                                                       (*  *) 
-(*  Given a variable x and a regular expression e, *)                                                                  (* // Given a variable x and a regular expression e, *) 
-(*   produce a new expression ( u \detensorproduct t* ) *)                                                             (* //  produce a new expression ( u \detensorproduct t* ) *) 
-let isolate x e =                                                                                                      (* CACHED NOWIDEN regExp factor(INT32 x, regExp e) *) 
-  let u,t = factorAux x e in                                                                                           (*   let p = factorAux(x, e) *) 
-  (* match p with                                                                                                      (*   in (with(p)( *) 
+    | Kleene (child,starKey) -> (e, ZeroT)                                                                   
+    | Detensor (uChild,tChild) ->                                                                            
+      let uu,ut = (factorAux x uChild)                                                                       
+  (*match uChildPair with                                                                                    
+    |  uu,ut ->  *)                                                                                          
+      in  ((mkDetensor uu tChild),                                                                           
+           (mkDotT ut tChild));;                                                                             
+                                                                                                             
+(*  Given a variable x and a regular expression e, *)                                                        
+(*   produce a new expression ( u \detensorproduct t* ) *)                                                   
+let isolate x e =                                                                                            
+  let u,t = factorAux x e in                                                                                 
+  (* match p with                                                                                            
     |  u,t -> *) 
-  mkDetensor u (mkKleeneT t);;                                                                                         (*       RegExpUTPair(u,t) : mkDetensor(u, mkKleeneT(t)) *) 
-                                                                                                                       (*  *) 
-(*  ---- general substitution functions, not currently used ---- *)                                                    (* // ---- general substitution functions, not currently used ---- *) 
-                                                                                                                       (*  *) 
-(*  Substitute s for x in e *)                                                                                         (* // Substitute s for x in e *) 
-let rec subst s x e =                                                                                                  (* CACHED NOWIDEN regExp subst(regExp s, INT32 x, regExp e){ *) 
-  match e with                                                                                                         (*   with(e) ( *) 
-    | Var v -> if (x == v) then s else e                                                                      (*,-1*)  (*     Var(v): if (x == v) then s else e, *) 
-    | Zero -> e                                                                                               (*,-1*)  (*     Zero(): e, *) 
-    | One -> e                                                                                                (*,-1*)  (*     One(): e, *) 
-    | Weight weight -> e                                                                                      (*,-1*)  (*     Weight(weight): e, *) 
-    | Project (child) -> mkProject (subst s x child)                                                          (*,-1*)  (*     Project(a,b,child): mkProject(a,b,subst(s,x,child)), *) 
-    | Plus (lChild, rChild) -> mkPlus (subst s x lChild) (subst s x rChild)                                   (*,-1*)  (*     Plus(lChild, rChild): mkPlus(subst(s,x,lChild),subst(s,x,rChild)), *) 
-    | Dot (lChild, rChild) -> mkDot (subst s x lChild) (subst s x rChild)                                     (*,-1*)  (*     Dot(lChild, rChild): mkDot(subst(s,x,lChild),subst(s,x,rChild)), *) 
-    | Kleene (child, starKey) -> mkKleene (subst s x child)                                                   (*,-1*)  (*     Kleene(child): mkKleene(subst(s,x,child)), *) 
-    | Detensor (uChild,tChild) -> mkDetensor (subst s x uChild) (substT s x tChild)                                    (*     Detensor(uChild,tChild): mkDetensor(subst(s,x,uChild),substT(s,x,Child)) *) 
-                                                                                                                       (*  *) 
-(*  Substitute s for the variable x in e, where x is interpreted as the number *)                                      (* // Substitute s for the variable x in e, where x is interpreted as the number *) 
-(*    of some untensored variable, so, we will not substitute for occurrences of *)                                    (* //   of some untensored variable, so, we will not substitute for occurrences of *) 
-(*    the tensored variable with numbre x. *)                                                                          (* //   the tensored variable with numbre x. *) 
-and substT s x e =                                                                                                     (* CACHED NOWIDEN regExp substT(regExp s, INT32 x, regExp e){ *) 
-  match e with                                                                                                         (*   with(e) ( *) 
-    | VarT v -> e                                                                                             (*,-1*)  (*     VarT(v): e, *) 
-    | ZeroT -> e                                                                                              (*,-1*)  (*     ZeroT(): e, *) 
-    | OneT -> e                                                                                               (*,-1*)  (*     OneT(): e, *) 
-    | ProjectT (child) -> mkProjectT (substT s x child)                                                       (*,-1*)  (*     ProjectT(a,b,child): mkProjectT(a,b,substT(s,x,child)), *) 
-    | PlusT (lChild, rChild) -> mkPlusT (substT s x lChild) (substT s x rChild)                               (*,-1*)  (*     PlusT(lChild, rChild): mkPlusT(substT(s,x,lChild),substT(s,x,rChild)), *) 
-    | DotT (lChild, rChild) -> mkDotT (substT s x lChild) (substT s x rChild)                                 (*,-1*)  (*     DotT(lChild, rChild): mkDotT(substT(s,x,lChild),substT(s,x,rChild)), *) 
-    | KleeneT (child, starKey) -> mkKleeneT (substT s x child)                                                (*,-1*)  (*     KleeneT(child): mkKleeneT(substT(s,x,child)), *) 
-    | Tensor (lChild,rChild) -> mkTensor (subst s x lChild) (subst s x rChild)                                         (*     Tensor(lChild,rChild): mkTensor(subst(s,x,lChild),subst(s,x,rChild)) *) 
-;;                                                                                                                     (*  *) 
-                                                                                                                       (*  *) 
+  mkDetensor u (mkKleeneT t);;                                                                               
+                                                                                                             
+(*  ---- general substitution functions, not currently used ---- *)                                          
+                                                                                                             
+(*  Substitute s for x in e *)                                                                               
+let rec subst s x e =                                                                                        
+  match e with                                                                                               
+    | Var v -> if (x == v) then s else e                                                                     
+    | Zero -> e                                                                                              
+    | One -> e                                                                                               
+    | Weight weight -> e                                                                                     
+    | Project (child) -> mkProject (subst s x child)                                                         
+    | Plus (lChild, rChild) -> mkPlus (subst s x lChild) (subst s x rChild)                                  
+    | Dot (lChild, rChild) -> mkDot (subst s x lChild) (subst s x rChild)                                    
+    | Kleene (child, starKey) -> mkKleene (subst s x child)                                                  
+    | Detensor (uChild,tChild) -> mkDetensor (subst s x uChild) (substT s x tChild)                          
+                                                                                                             
+(*  Substitute s for the variable x in e, where x is interpreted as the number *)                            
+(*    of some untensored variable, so, we will not substitute for occurrences of *)                          
+(*    the tensored variable with numbre x. *)                                                                
+and substT s x e =                                                                                           
+  match e with                                                                                               
+    | VarT v -> e                                                                                            
+    | ZeroT -> e                                                                                             
+    | OneT -> e                                                                                              
+    | ProjectT (child) -> mkProjectT (substT s x child)                                                      
+    | PlusT (lChild, rChild) -> mkPlusT (substT s x lChild) (substT s x rChild)                              
+    | DotT (lChild, rChild) -> mkDotT (substT s x lChild) (substT s x rChild)                                
+    | KleeneT (child, starKey) -> mkKleeneT (substT s x child)                                               
+    | Tensor (lChild,rChild) -> mkTensor (subst s x lChild) (subst s x rChild)                               
+;;                                                                                                           
+                                                                                                             
 (*  ---- printing functions ---- *)
 
 let rec indent i =
@@ -496,197 +496,197 @@ and printRegExpTAux e i =
 let printRegExp e = printRegExpAux e 0; flush stdout;;
 let printRegExpT e = printRegExpTAux e 0; flush stdout;;
 
-(*  ---- introspection functions ---- *)                                                                               (* // ---- introspection functions ---- *) 
-                                                                                                                       (*  *) 
-let getLChild e =                                                                                                      (* NOWIDEN regExp getLChild(regExp e){ *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Project l -> l                                                                                          (*,-1*)  (*     Project(~*,*,l): l, *) 
-    | Plus (l,r) -> l                                                                                         (*,-1*)  (*     Plus(l,r): l, *) 
-    | Dot (l,r) -> l                                                                                          (*,-1*)  (*     Dot(l,r): l, *) 
-    | Kleene(l,k) -> l                                                                                        (*,-1*)  (*     Kleene(l): l, *) 
-    | _ -> Zero;;                                                                                                      (*     default: Zero() *) 
-                                                                                                                       (*  *) 
-let getRChild e =                                                                                                      (* NOWIDEN regExp getRChild(regExp e){ *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Plus (l,r) -> r                                                                                         (*,-1*)  (*     Plus(l,r): r, *) 
-    | Dot (l,r) -> r                                                                                          (*,-1*)  (*     Dot(l,r): r, *) 
-    | _ -> Zero;;                                                                                                      (*     default: Zero() *) 
-                                                                                                                       (*  *) 
-let getLChildT e =                                                                                                     (* NOWIDEN regExpT getLChildT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | PlusT (l,r) -> l                                                                                        (*,-1*)  (*     PlusT(l,r): l, *) 
-    | DotT (l,r) -> l                                                                                         (*,-1*)  (*     DotT(l,r): l, *) 
-    | KleeneT (l,k) -> l                                                                                      (*,-1*)  (*     KleeneT(l): l, *) 
-    | ProjectT (l) -> l                                                                                       (*,-1*)  (*     ProjectT(~*,*,l): l, *) 
-    | _ -> ZeroT;;                                                                                                     (*     default: ZeroT() *) 
-                                                                                                                       (*  *) 
-let getRChildT e =                                                                                                     (* NOWIDEN regExpT getRChildT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | PlusT (l,r) -> r                                                                                        (*,-1*)  (*     PlusT(l,r): r, *) 
-    | DotT (l,r) -> r                                                                                         (*,-1*)  (*     DotT(l,r): r, *) 
-    | _ -> ZeroT;;                                                                                                     (*     default: ZeroT() *) 
-                                                                                                                       (*  *) 
+(*  ---- introspection functions ---- *)                                                                     
+                                                                                                             
+let getLChild e =                                                                                            
+  match e with                                                                                               
+    | Project l -> l                                                                                         
+    | Plus (l,r) -> l                                                                                        
+    | Dot (l,r) -> l                                                                                         
+    | Kleene(l,k) -> l                                                                                       
+    | _ -> Zero;;                                                                                            
+                                                                                                             
+let getRChild e =                                                                                            
+  match e with                                                                                               
+    | Plus (l,r) -> r                                                                                        
+    | Dot (l,r) -> r                                                                                         
+    | _ -> Zero;;                                                                                            
+                                                                                                             
+let getLChildT e =                                                                                           
+  match e with                                                                                               
+    | PlusT (l,r) -> l                                                                                       
+    | DotT (l,r) -> l                                                                                        
+    | KleeneT (l,k) -> l                                                                                     
+    | ProjectT (l) -> l                                                                                      
+    | _ -> ZeroT;;                                                                                           
+                                                                                                             
+let getRChildT e =                                                                                           
+  match e with                                                                                               
+    | PlusT (l,r) -> r                                                                                       
+    | DotT (l,r) -> r                                                                                        
+    | _ -> ZeroT;;                                                                                           
+                                                                                                             
 
 
-let isZero e =                                                                                                         (* NOWIDEN BOOL isZero(regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Zero -> true                                                                                            (*,-1*)  (*     Zero(): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isOne e =                                                                                                          (* NOWIDEN BOOL isOne(regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | One -> true                                                                                             (*,-1*)  (*     One(): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isVar e =                                                                                                          (* NOWIDEN BOOL isVar(regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Var v -> true                                                                                           (*,-1*)  (*     Var(v): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isWeight e =                                                                                                       (* NOWIDEN BOOL isWeight(regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Weight w -> true                                                                                        (*,-1*)  (*     Weight(w): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isProject e =                                                                                                      (* NOWIDEN BOOL isProject(regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Project _ -> true                                                                                       (*,-1*)  (*     Project(~*,*,*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isPlus e =                                                                                                         (* NOWIDEN BOOL isPlus(regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Plus (_,_) -> true                                                                                      (*,-1*)  (*     Plus(~*,*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isDot e =                                                                                                          (* NOWIDEN BOOL isDot(regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Dot (_,_) -> true                                                                                       (*,-1*)  (*     Dot(~*,*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isKleene e =                                                                                                       (* NOWIDEN BOOL isKleene(regExp e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Kleene (_,_) -> true                                                                                    (*,-1*)  (*     Kleene(~*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isZeroT e =                                                                                                        (* NOWIDEN BOOL isZeroT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | ZeroT -> true                                                                                           (*,-1*)  (*     ZeroT(): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isOneT e =                                                                                                         (* NOWIDEN BOOL isOneT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | OneT -> true                                                                                            (*,-1*)  (*     OneT(): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isVarT e =                                                                                                         (* NOWIDEN BOOL isVarT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | VarT v -> true                                                                                          (*,-1*)  (*     VarT(v): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isProjectT e =                                                                                                     (* NOWIDEN BOOL isProjectT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | ProjectT (_) -> true                                                                                    (*,-1*)  (*     ProjectT(~*,*,*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isPlusT e =                                                                                                        (* NOWIDEN BOOL isPlusT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | PlusT (_,_) -> true                                                                                     (*,-1*)  (*     PlusT(~*,*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isDotT e =                                                                                                         (* NOWIDEN BOOL isDotT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | DotT (_,_) -> true                                                                                      (*,-1*)  (*     DotT(~*,*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isKleeneT e =                                                                                                      (* NOWIDEN BOOL isKleeneT(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | KleeneT (_,_) -> true                                                                                   (*,-1*)  (*     KleeneT(~*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-let isTensor e =                                                                                                       (* NOWIDEN BOOL isTensor(regExpT e) *) 
-  match e with                                                                                                         (*   with(e)( *) 
-    | Tensor (_,_) -> true                                                                                    (*,-1*)  (*     Tensor(~*,*~): true, *) 
-    | _ -> false;;                                                                                                     (*     default: false *) 
-                                                                                                                       (*  *) 
-(*  ---- exported function callbacks ---- *)                                                                           (* // ---- exported function callbacks ---- *) 
-(* These functions are defined in OCaml may be called externally (e.g., from C) *)                                     (* (~* These functions are defined in OCaml may be called externally (e.g., from C) *~) *) 
-                                                                                                                       (*  *) 
-let _ = (*  Jason manually added this line... *)                                                                       (* let _ = // Jason manually added this line... *) 
+let isZero e =                                                                                               
+  match e with                                                                                               
+    | Zero -> true                                                                                           
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isOne e =                                                                                                
+  match e with                                                                                               
+    | One -> true                                                                                            
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isVar e =                                                                                                
+  match e with                                                                                               
+    | Var v -> true                                                                                          
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isWeight e =                                                                                             
+  match e with                                                                                               
+    | Weight w -> true                                                                                       
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isProject e =                                                                                            
+  match e with                                                                                               
+    | Project _ -> true                                                                                      
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isPlus e =                                                                                               
+  match e with                                                                                               
+    | Plus (_,_) -> true                                                                                     
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isDot e =                                                                                                
+  match e with                                                                                               
+    | Dot (_,_) -> true                                                                                      
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isKleene e =                                                                                             
+  match e with                                                                                               
+    | Kleene (_,_) -> true                                                                                   
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isZeroT e =                                                                                              
+  match e with                                                                                               
+    | ZeroT -> true                                                                                          
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isOneT e =                                                                                               
+  match e with                                                                                               
+    | OneT -> true                                                                                           
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isVarT e =                                                                                               
+  match e with                                                                                               
+    | VarT v -> true                                                                                         
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isProjectT e =                                                                                           
+  match e with                                                                                               
+    | ProjectT (_) -> true                                                                                   
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isPlusT e =                                                                                              
+  match e with                                                                                               
+    | PlusT (_,_) -> true                                                                                    
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isDotT e =                                                                                               
+  match e with                                                                                               
+    | DotT (_,_) -> true                                                                                     
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isKleeneT e =                                                                                            
+  match e with                                                                                               
+    | KleeneT (_,_) -> true                                                                                  
+    | _ -> false;;                                                                                           
+                                                                                                             
+let isTensor e =                                                                                             
+  match e with                                                                                               
+    | Tensor (_,_) -> true                                                                                   
+    | _ -> false;;                                                                                           
+                                                                                                             
+(*  ---- exported function callbacks ---- *)                                                                 
+(* These functions are defined in OCaml may be called externally (e.g., from C) *)                           
+                                                                                                             
+let _ = (*  Jason manually added this line... *)                                                             
 (*  Printing operations *)          
   Callback.register "IRE_printRegExp" printRegExp;
   Callback.register "IRE_pringRegExpT" printRegExpT;
 (*  Nullary construction operations *)          
   Callback.register "IRE_mkZero" mkZero;
   Callback.register "IRE_mkOne" mkOne;
-(*  Unary construction operations *)                                                                                   (* // Unary construction operations *) 
-  Callback.register "IRE_mkKleene" mkKleene;                                                                           (* EXPORT <E> mkKleene(<E>); *) 
-  Callback.register "IRE_mkKleeneT" mkKleeneT;                                                                         (* EXPORT <E> mkKleeneT(<E>); *) 
-  Callback.register "IRE_mkVar" mkVar;                                                                                 (* EXPORT <E> mkVar(<E>); *) 
-  Callback.register "IRE_mkVarT" mkVarT;                                                                               (* EXPORT <E> mkVarT(<E>); *) 
-  Callback.register "IRE_mkWeight" mkWeight;                                                                           (* EXPORT <E> mkWeight(<E>); *) 
-  Callback.register "IRE_mkProject" mkProject;                                                                         (* EXPORT <E> mkProject(<E>,<E>,<E>); *) 
-  Callback.register "IRE_mkProjectT" mkProjectT;                                                                       (* EXPORT <E> mkProjectT(<E>,<E>,<E>); *) 
-                                                                                                                       (*  *) 
-(*  Binary construction operations *)                                                                                  (* // Binary construction operations *) 
-  Callback.register "IRE_mkPlus" mkPlus;                                                                               (* EXPORT <E> mkPlus(<E>, <E>); *) 
-  Callback.register "IRE_mkDot" mkDot;                                                                                 (* EXPORT <E> mkDot(<E>, <E>); *) 
-  Callback.register "IRE_mkPlusT" mkPlusT;                                                                             (* EXPORT <E> mkPlusT(<E>, <E>); *) 
-  Callback.register "IRE_mkDotT" mkDotT;                                                                               (* EXPORT <E> mkDotT(<E>, <E>); *) 
-  Callback.register "IRE_mkTensor" mkTensor;                                                                           (* EXPORT <E> mkTensor(<E>, <E>); *) 
-                                                                                                                       (*  *) 
-(*  Miscellaneous operations *)                                                                                        (* // Miscellaneous operations *) 
-  Callback.register "IRE_evalT" evalT;                                                                                 (* EXPORT <E> evalT(<E>); *) 
-  Callback.register "IRE_evalRegExp" evalRegExp;                                                                       (* EXPORT <E> evalRegExp(<E>); *) 
-  Callback.register "IRE_detensor" detensor;                                                                           (* EXPORT <E> detensor(<E>); *) 
+(*  Unary construction operations *)                                                                         
+  Callback.register "IRE_mkKleene" mkKleene;                                                                 
+  Callback.register "IRE_mkKleeneT" mkKleeneT;                                                               
+  Callback.register "IRE_mkVar" mkVar;                                                                       
+  Callback.register "IRE_mkVarT" mkVarT;                                                                     
+  Callback.register "IRE_mkWeight" mkWeight;                                                                 
+  Callback.register "IRE_mkProject" mkProject;                                                               
+  Callback.register "IRE_mkProjectT" mkProjectT;                                                             
+                                                                                                             
+(*  Binary construction operations *)                                                                        
+  Callback.register "IRE_mkPlus" mkPlus;                                                                     
+  Callback.register "IRE_mkDot" mkDot;                                                                       
+  Callback.register "IRE_mkPlusT" mkPlusT;                                                                   
+  Callback.register "IRE_mkDotT" mkDotT;                                                                     
+  Callback.register "IRE_mkTensor" mkTensor;                                                                 
+                                                                                                             
+(*  Miscellaneous operations *)                                                                              
+  Callback.register "IRE_evalT" evalT;                                                                       
+  Callback.register "IRE_evalRegExp" evalRegExp;                                                             
+  Callback.register "IRE_detensor" detensor;                                                                 
 
 (*
   (* These are no longer used *)
-  Callback.register "IRE_updateAssignmentList" updateAssignmentList;                                                   (* EXPORT <E> updateAssignmentList(<E>,<E>,<E>); *) 
-  Callback.register "IRE_initAssignmentList" initAssignmentList;                                                       (* EXPORT <E> initAssignmentList(<E>,<E>); *) 
-  Callback.register "IRE_checkEqual" checkEqual;                                                                       (* EXPORT <E> checkEqual(<E>,<E>); *) 
-  Callback.register "IRE_getVarNum" getVarNum;                                                                         (* EXPORT <E> getVarNum(<E>,<E>); *) 
-  Callback.register "IRE_getDVarNum" getDVarNum;                                                                       (* EXPORT <E> getDVarNum(<E>,<E>); *) 
-  Callback.register "IRE_getNumPairs" getNumPairs;                                                                     (* EXPORT <E> getNumPairs(<E>); *) 
-  Callback.register "IRE_getPairL" getPairL;                                                                           (* EXPORT <E> getPairL(<E>,<E>); *) 
-  Callback.register "IRE_getPairR" getPairR;                                                                           (* EXPORT <E> getPairR(<E>,<E>); *) 
-  Callback.register "IRE_getTListLength" getTListLength;                                                               (* EXPORT <E> getTListLength(<E>); *) 
-  Callback.register "IRE_getDListLength" getDListLength;                                                               (* EXPORT <E> getDListLength(<E>); *) 
-  Callback.register "IRE_getTFromRegList" getTFromRegList;                                                             (* EXPORT <E> getTFromRegList(<E>,<E>); *) 
-  Callback.register "IRE_getPFromRegList" getPFromRegList;                                                             (* EXPORT <E> getPFromRegList(<E>,<E>); *) 
-  Callback.register "IRE_getAssignment" getAssignment;                                                                 (* EXPORT <E> getAssignment(<E>,<E>); *) 
-  Callback.register "IRE_getNextPList" getNextPList;                                                                   (* EXPORT <E> getNextPList(<E>); *) 
-  Callback.register "IRE_isNullTList" isNullTList;                                                                     (* EXPORT <E> isNullTList(<E>); *) 
-  Callback.register "IRE_getNextTList" getNextTList;                                                                   (* EXPORT <E> getNextTList(<E>); *) 
-  Callback.register "IRE_getRegExpTFromTList" getRegExpTFromTList;                                                     (* EXPORT <E> getRegExpTFromTList(<E>); *) 
-  Callback.register "IRE_mapDotOnRight" mapDotOnRight;                                                                 (* EXPORT <E> mapDotOnRight(<E>,<E>); *) 
-  Callback.register "IRE_mapDotOnLeft" mapDotOnLeft;                                                                   (* EXPORT <E> mapDotOnLeft(<E>,<E>); *) 
-  Callback.register "IRE_mapDotBothSides" mapDotBothSides;                                                             (* EXPORT <E> mapDotBothSides(<E>,<E>); *) 
-  Callback.register "IRE_mapDotTOnRight" mapDotTOnRight;                                                               (* EXPORT <E> mapDotTOnRight(<E>,<E>); *) 
-  Callback.register "IRE_mapPlusT" mapPlusT;                                                                           (* EXPORT <E> mapPlusT(<E>,<E>); *) 
-  Callback.register "IRE_mapPlus" mapPlus;                                                                             (* EXPORT <E> mapPlus(<E>,<E>); *) 
+  Callback.register "IRE_updateAssignmentList" updateAssignmentList;                                         
+  Callback.register "IRE_initAssignmentList" initAssignmentList;                                             
+  Callback.register "IRE_checkEqual" checkEqual;                                                             
+  Callback.register "IRE_getVarNum" getVarNum;                                                               
+  Callback.register "IRE_getDVarNum" getDVarNum;                                                             
+  Callback.register "IRE_getNumPairs" getNumPairs;                                                           
+  Callback.register "IRE_getPairL" getPairL;                                                                 
+  Callback.register "IRE_getPairR" getPairR;                                                                 
+  Callback.register "IRE_getTListLength" getTListLength;                                                     
+  Callback.register "IRE_getDListLength" getDListLength;                                                     
+  Callback.register "IRE_getTFromRegList" getTFromRegList;                                                   
+  Callback.register "IRE_getPFromRegList" getPFromRegList;                                                   
+  Callback.register "IRE_getAssignment" getAssignment;                                                       
+  Callback.register "IRE_getNextPList" getNextPList;                                                         
+  Callback.register "IRE_isNullTList" isNullTList;                                                           
+  Callback.register "IRE_getNextTList" getNextTList;                                                         
+  Callback.register "IRE_getRegExpTFromTList" getRegExpTFromTList;                                           
+  Callback.register "IRE_mapDotOnRight" mapDotOnRight;                                                       
+  Callback.register "IRE_mapDotOnLeft" mapDotOnLeft;                                                         
+  Callback.register "IRE_mapDotBothSides" mapDotBothSides;                                                   
+  Callback.register "IRE_mapDotTOnRight" mapDotTOnRight;                                                     
+  Callback.register "IRE_mapPlusT" mapPlusT;                                                                 
+  Callback.register "IRE_mapPlus" mapPlus;                                                                   
 *)
-  Callback.register "IRE_isOne" isOne;                                                                                 (* EXPORT <E> isOne(<E>); *) 
-  Callback.register "IRE_isZero" isZero;                                                                               (* EXPORT <E> isZero(<E>); *) 
-  Callback.register "IRE_isVar" isVar;                                                                                 (* EXPORT <E> isVar(<E>); *) 
-  Callback.register "IRE_isWeight" isWeight;                                                                           (* EXPORT <E> isWeight(<E>); *) 
-  Callback.register "IRE_isProject" isProject;                                                                         (* EXPORT <E> isProject(<E>); *) 
-  Callback.register "IRE_isKleene" isKleene;                                                                           (* EXPORT <E> isKleene(<E>); *) 
-  Callback.register "IRE_isPlus" isPlus;                                                                               (* EXPORT <E> isPlus(<E>); *) 
-  Callback.register "IRE_isDot" isDot;                                                                                 (* EXPORT <E> isDot(<E>); *) 
-  Callback.register "IRE_isOneT" isOneT;                                                                               (* EXPORT <E> isOneT(<E>); *) 
-  Callback.register "IRE_isZeroT" isZeroT;                                                                             (* EXPORT <E> isZeroT(<E>); *) 
-  Callback.register "IRE_isVarT" isVarT;                                                                               (* EXPORT <E> isVarT(<E>); *) 
-  Callback.register "IRE_isProjectT" isProjectT;                                                                       (* EXPORT <E> isProjectT(<E>); *) 
-  Callback.register "IRE_isKleeneT" isKleeneT;                                                                         (* EXPORT <E> isKleeneT(<E>); *) 
-  Callback.register "IRE_isPlusT" isPlusT;                                                                             (* EXPORT <E> isPlusT(<E>); *) 
-  Callback.register "IRE_isDotT" isDotT;                                                                               (* EXPORT <E> isDotT(<E>); *) 
-  Callback.register "IRE_isTensor" isTensor;                                                                           (* EXPORT <E> isTensor(<E>); *) 
-  Callback.register "IRE_getLChild" getLChild;                                                                         (* EXPORT <E> getLChild(<E>); *) 
-  Callback.register "IRE_getRChild" getRChild;                                                                         (* EXPORT <E> getRChild(<E>); *) 
-  Callback.register "IRE_getLChildT" getLChildT;                                                                       (* EXPORT <E> getLChildT(<E>); *) 
-  Callback.register "IRE_getRChildT" getRChildT;                                                                       (* EXPORT <E> getRChildT(<E>); *) 
-  Callback.register "IRE_isolate" isolate;                                                                             (* EXPORT <E> isolate(<E>,<E>); *) 
-  Callback.register "IRE_substFree" substFree;;                                                                        (* EXPORT <E> substFree(<E>,<E>,<E>); *) 
+  Callback.register "IRE_isOne" isOne;                                                                       
+  Callback.register "IRE_isZero" isZero;                                                                     
+  Callback.register "IRE_isVar" isVar;                                                                       
+  Callback.register "IRE_isWeight" isWeight;                                                                 
+  Callback.register "IRE_isProject" isProject;                                                               
+  Callback.register "IRE_isKleene" isKleene;                                                                 
+  Callback.register "IRE_isPlus" isPlus;                                                                     
+  Callback.register "IRE_isDot" isDot;                                                                       
+  Callback.register "IRE_isOneT" isOneT;                                                                     
+  Callback.register "IRE_isZeroT" isZeroT;                                                                   
+  Callback.register "IRE_isVarT" isVarT;                                                                     
+  Callback.register "IRE_isProjectT" isProjectT;                                                             
+  Callback.register "IRE_isKleeneT" isKleeneT;                                                               
+  Callback.register "IRE_isPlusT" isPlusT;                                                                   
+  Callback.register "IRE_isDotT" isDotT;                                                                     
+  Callback.register "IRE_isTensor" isTensor;                                                                 
+  Callback.register "IRE_getLChild" getLChild;                                                               
+  Callback.register "IRE_getRChild" getRChild;                                                               
+  Callback.register "IRE_getLChildT" getLChildT;                                                             
+  Callback.register "IRE_getRChildT" getRChildT;                                                             
+  Callback.register "IRE_isolate" isolate;                                                                   
+  Callback.register "IRE_substFree" substFree;;                                                              
   Callback.register "IRE_clearEvalCaches" clearEvalCaches;;
-(*  Jason manually added this line *)                                                                                  (* () // Jason manually added this line *) 
+(*  Jason manually added this line *)                                                                        
 (* the end *)
