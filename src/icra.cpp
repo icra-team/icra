@@ -1123,9 +1123,9 @@ int main(int argc, char **argv)
     }
     
     else {
-        //if (aboveBelowMode == NEWTON_FROM_ABOVE) {
-        //    assert(false && "Newton-from-above is not supported in this version of NewtonOcaml.");
-        //}
+        if (aboveBelowMode == NEWTON_FROM_ABOVE) {
+            assert(false && "Newton-from-above is not supported in this version of ICRA.");
+        }
         if (aboveBelowMode == NEWTON_FROM_BELOW || aboveBelowMode == NEWTON_FROM_ABOVE) {
             if (testMode) {
                 std::fstream testFile(testFileName.c_str(), std::fstream::out | std::fstream::app);
