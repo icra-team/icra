@@ -1,4 +1,4 @@
-#include "IRE.hpp"
+#include "ire.hpp"
 
 #define STORE_CALLBACK_IN_VAR(N, F) static value * F = NULL; \
                                     if (F == NULL) { \

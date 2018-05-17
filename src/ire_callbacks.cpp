@@ -1,5 +1,5 @@
 #include <iostream>
-#include "IRE_callbacks.hpp"
+#include "ire_callbacks.hpp"
 
 // --------------------------------------------------------------------------
 IRE_Assignment IREglobalAssignment;

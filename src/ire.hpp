@@ -11,7 +11,7 @@ extern "C" {
 #include "wali/ref_ptr.hpp"
 #include "wali/Countable.hpp"
 
-#include "IRE_callbacks.hpp"
+#include "ire_callbacks.hpp"
 //#include "wali/domains/duet/DuetRel.hpp"
 
 // ICRA Regular Expressions

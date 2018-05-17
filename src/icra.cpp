@@ -46,7 +46,7 @@ extern "C" {
 #include <caml/callback.h>
 }
 
-#include "IRE.hpp"
+#include "ire.hpp"
 
 using namespace std;
 using namespace wali;

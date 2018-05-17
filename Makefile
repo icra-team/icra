@@ -15,8 +15,8 @@ CXXFLAGS = -c -O0 -Wall -g -Wextra -Wformat=2 -Winit-self -Wfloat-equal -Wpointe
 .DEFAULT_GOAL := icra
 
 
-icra: $(DOMAINS_SO) $(WALI_SO) $(DUET_SO) $(BUILD)/icra.o $(BUILD)/newton_interface.o $(BUILD)/IRE_callbacks.o $(BUILD)/IRE.o
-	g++ -g -o icra -Wl,-rpath=$(BOOST_PATH)/lib -Wl,-rpath=$(DUET_ROOT)/_build/duet -Wl,-rpath=$(DUET_ROOT)/_build/src/duet -Wl,-rpath=$(WALI_ROOT) -Wl,-rpath=$(WALI_ROOT)/lib64 -Wl,--start-group $(BUILD)/icra.o $(BUILD)/IRE_callbacks.o $(BUILD)/IRE.o $(BUILD)/newton_interface.o -L$(BOOST_PATH)/lib -L$(WALI_ROOT)/lib64 -L$(BUILD) -L"`ocamlc -where`" -L$(DUET_ROOT)/_build/duet -L$(WALI_ROOT) -lrt -lduet -lwali -lwalidomains -lglog -Wl,--end-group
+icra: $(DOMAINS_SO) $(WALI_SO) $(DUET_SO) $(BUILD)/icra.o $(BUILD)/newton_interface.o $(BUILD)/ire_callbacks.o $(BUILD)/ire.o
+	g++ -g -o icra -Wl,-rpath=$(BOOST_PATH)/lib -Wl,-rpath=$(DUET_ROOT)/_build/duet -Wl,-rpath=$(DUET_ROOT)/_build/src/duet -Wl,-rpath=$(WALI_ROOT) -Wl,-rpath=$(WALI_ROOT)/lib64 -Wl,--start-group $(BUILD)/icra.o $(BUILD)/ire_callbacks.o $(BUILD)/ire.o $(BUILD)/newton_interface.o -L$(BOOST_PATH)/lib -L$(WALI_ROOT)/lib64 -L$(BUILD) -L"`ocamlc -where`" -L$(DUET_ROOT)/_build/duet -L$(WALI_ROOT) -lrt -lduet -lwali -lwalidomains -lglog -Wl,--end-group
 	@echo " **** ICRA build completed successfully **** "
 
 $(shell mkdir -p $(BUILD))
@@ -40,11 +40,11 @@ $(BUILD)/newton_interface.o: $(SOURCE)/NewtonOcamlInterface.cpp $(SOURCE)/Newton
 $(BUILD)/icra.o: $(SOURCE)/icra.cpp $(SOURCE)/icra.hpp $(DOMAINS_FILES)
 	g++ -o $(BUILD)/icra.o $(CXXFLAGS) src/icra.cpp
 
-$(BUILD)/IRE_callbacks.o: $(SOURCE)/IRE_callbacks.cpp $(SOURCE)/IRE_callbacks.hpp $(DOMAINS_FILES)
-	g++ -o $(BUILD)/IRE_callbacks.o $(CXXFLAGS) src/IRE_callbacks.cpp
+$(BUILD)/ire_callbacks.o: $(SOURCE)/ire_callbacks.cpp $(SOURCE)/ire_callbacks.hpp $(DOMAINS_FILES)
+	g++ -o $(BUILD)/ire_callbacks.o $(CXXFLAGS) src/ire_callbacks.cpp
 
-$(BUILD)/IRE.o: $(SOURCE)/IRE.cpp $(SOURCE)/IRE.hpp $(DOMAINS_FILES)
-	g++ -o $(BUILD)/IRE.o $(CXXFLAGS) src/IRE.cpp
+$(BUILD)/ire.o: $(SOURCE)/ire.cpp $(SOURCE)/ire.hpp $(DOMAINS_FILES)
+	g++ -o $(BUILD)/ire.o $(CXXFLAGS) src/ire.cpp
 
 all: wali duet icra
 
