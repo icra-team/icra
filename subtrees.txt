@@ -10,6 +10,6 @@ git subtree add --prefix duet duet --squash
 #    NOTE: only an ICRA maintainer has to do these steps!
 #          everybody else just does a single git pull!
 git fetch duet 
-git subtree pull --prefix duet duet --squash
+git subtree pull --prefix duet duet Newton-ark2 --squash
 git fetch wali
-git subtree pull --prefix WALi-OpenNWA wali --squash
+git subtree pull --prefix WALi-OpenNWA wali NewtonDuetGaussian --squash
