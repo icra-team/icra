@@ -48,8 +48,6 @@ extern "C" {
 
 #include "IRE.hpp"
 
-#define USE_IRE
-
 using namespace std;
 using namespace wali;
 using namespace wali::wfa;
@@ -177,7 +175,6 @@ relation_t mkRelationFromSemElem(wali::sem_elem_t s) {
     return d;
 }
 
-#ifdef USE_IRE
 /*
  *  convertToICRARegExp
  *
@@ -242,15 +239,12 @@ IRE::regExpRefPtr convertToICRARegExp(reg_exp_t exp,
     IREregExpConversionMap[exp] = retval; // Put retval into this function's cache
     return retval;
 }
-#endif
-
 
 #define WIDENING_DELAY 6
 // Default values:
 #define MAX_ROUNDS_FROM_BELOW 50
 #define MAX_ROUNDS_FROM_ABOVE 4
 
-#ifdef USE_IRE
 void newtonLoop_GJ_IRE(IRE_Assignment & IREnewAssignment, 
                        IRERegExpMap & IREregExpsAfterIsolation)
 {
@@ -375,10 +369,8 @@ NEWROUND:
   
   inNewtonLoop = false;
 }
-#endif
 
 
-#ifdef USE_IRE
 double doNewtonSteps_GJ_IRE(WFA& outfa, wali::Key entry_key, FWPDS * originalPds)
 { 
   IREglobalAssignment.clear();
@@ -579,8 +571,6 @@ double doNewtonSteps_GJ_IRE(WFA& outfa, wali::Key entry_key, FWPDS * originalPds
   
   return 0;
 }
-#endif
-
 
 
 
