@@ -16,6 +16,7 @@ DUET_SO = $(DUET_ROOT)/_build/duet/libduet.so
 
 icra: $(DOMAINS_SO) $(WALI_SO) $(DUET_SO) $(BUILD)/icra.o $(BUILD)/libocamlinterface.so $(BUILD)/IRE_callbacks.o $(BUILD)/IRE.o
 	g++ -g -o icra -Wl,-rpath=$(BOOST_PATH)/lib -Wl,-rpath=$(DUET_ROOT)/_build/duet -Wl,-rpath=$(DUET_ROOT)/_build/src/duet -Wl,-rpath=$(WALI_ROOT) -Wl,-rpath=$(WALI_ROOT)/lib64 -Wl,--start-group $(BUILD)/icra.o $(BUILD)/IRE_callbacks.o $(BUILD)/IRE.o $(BUILD)/newton_interface.o -L$(BOOST_PATH)/lib -L$(WALI_ROOT)/lib64 -L$(BUILD) -L"`ocamlc -where`" -L$(DUET_ROOT)/_build/duet -L$(WALI_ROOT) -lrt -lduet -lwali -lwalidomains -lglog -Wl,--end-group
+	@echo " **** ICRA build completed successfully **** "
 
 $(shell mkdir -p $(BUILD))
 
