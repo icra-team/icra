@@ -9,8 +9,7 @@ MAKE_WALI = cd $(WALI_ROOT) && scons addons -Q
 BUILD = _build
 SOURCE = src
 DUET_SO = $(DUET_ROOT)/_build/duet/libduet.so
-CXXFLAGS1 = -c -O0 -Wall -g -Wextra -Wformat=2 -Winit-self -Wfloat-equal -Wpointer-arith -Wcast-align -Wwrite-strings -Wconversion -Woverloaded-virtual -fdiagnostics-show-option -DBOOST_NO_DEFAULTED_FUNCTIONS=1 -DCHECKED_LEVEL=2 -DEXPORT_GTR_SYMBOLS=0 -DPRATHMEHS_NWA_DETENSOR=0 -DREGEXP_TEST=1 -DUSE_DUET=1 -D_GLIBCXX_DEBUG=1 -I$(WALI_ROOT)/Source -I$(BOOST_PATH)/include -I$(SOURCE) -I$(WALI_ROOT)/AddOns/Domains/Source -I$(WALI_ROOT)/AddOns/Domains/ThirdParty/include -I"`ocamlc -where`"
-CXXFLAGS2 = -c -Wall -g -O0 -Wextra -fdiagnostics-show-option -fPIC -DBOOST_NO_DEFAULTED_FUNCTIONS=1 -DCHECKED_LEVEL=1 -DEXPORT_GTR_SYMBOLS=0 -DPRATHMEHS_NWA_DETENSOR=0 -DREGEXP_TEST=1 -DUSE_DUET=1 -I$(WALI_ROOT)/Source -I$(BOOST_PATH)/include -I$(WALI_ROOT)/AddOns/Domains/ThirdParty/include -I$(WALI_ROOT)/AddOns/Domains/Source -IThirdParty/include -I"`ocamlc -where`" 
+CXXFLAGS = -c -O0 -Wall -g -Wextra -Wformat=2 -Winit-self -Wfloat-equal -Wpointer-arith -Wcast-align -Wwrite-strings -Wconversion -Woverloaded-virtual -fdiagnostics-show-option -DBOOST_NO_DEFAULTED_FUNCTIONS=1 -DCHECKED_LEVEL=2 -DEXPORT_GTR_SYMBOLS=0 -DPRATHMEHS_NWA_DETENSOR=0 -DREGEXP_TEST=1 -DUSE_DUET=1 -D_GLIBCXX_DEBUG=1 -I$(WALI_ROOT)/Source -I$(BOOST_PATH)/include -I$(SOURCE) -I$(WALI_ROOT)/AddOns/Domains/Source -I$(WALI_ROOT)/AddOns/Domains/ThirdParty/include -I"`ocamlc -where`"
 
 .PHONY: wali duet clean veryclean
 .DEFAULT_GOAL := icra
@@ -36,21 +35,18 @@ veryclean:
 	-rm $(SOURCE)/icraRegexp.cmx	
 
 $(BUILD)/newton_interface.o: $(SOURCE)/NewtonOcamlInterface.cpp $(SOURCE)/NewtonOcamlInterface.hpp
-	g++ -o $(BUILD)/newton_interface.o $(CXXFLAGS1) $(SOURCE)/NewtonOcamlInterface.cpp
-
-#$(BUILD)/libocamlinterface.so: $(BUILD)/newton_interface.o
-#	g++ -o $(BUILD)/libocamlinterface.so -rdynamic -shared -Wl,-rpath=$(BOOST_PATH)/lib $(BUILD)/newton_interface.o -L$(BOOST_PATH)/lib -lrt
+	g++ -o $(BUILD)/newton_interface.o $(CXXFLAGS) $(SOURCE)/NewtonOcamlInterface.cpp
 
 $(BUILD)/icra.o: $(SOURCE)/icra.cpp $(SOURCE)/icra.hpp $(DOMAINS_FILES)
-	g++ -o $(BUILD)/icra.o $(CXXFLAGS1) src/icra.cpp
+	g++ -o $(BUILD)/icra.o $(CXXFLAGS) src/icra.cpp
 
 $(BUILD)/IRE_callbacks.o: $(SOURCE)/IRE_callbacks.cpp $(SOURCE)/IRE_callbacks.hpp $(DOMAINS_FILES)
-	g++ -o $(BUILD)/IRE_callbacks.o $(CXXFLAGS1) src/IRE_callbacks.cpp
+	g++ -o $(BUILD)/IRE_callbacks.o $(CXXFLAGS) src/IRE_callbacks.cpp
 
 $(BUILD)/IRE.o: $(SOURCE)/IRE.cpp $(SOURCE)/IRE.hpp $(DOMAINS_FILES)
-	g++ -o $(BUILD)/IRE.o $(CXXFLAGS1) src/IRE.cpp
+	g++ -o $(BUILD)/IRE.o $(CXXFLAGS) src/IRE.cpp
 
-#all: wali icra
+all: wali duet icra
 
 $(DOMAINS_SO): $(DOMAINS_FILES)
 	$(MAKE_WALI)
