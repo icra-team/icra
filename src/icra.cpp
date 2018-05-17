@@ -988,7 +988,7 @@ char * removeDoubleDash(char * str) {
 int main(int argc, char **argv)
 {
     gaussJordanMode = 1; // 0 means NPA-TP (use "--npa-tp"); 1 means NPA-TP-GJ.
-    aboveBelowMode = 0;
+    aboveBelowMode = NEWTON_FROM_BELOW;
     doSmtlibOutput = false;
     std::vector <char *> unrecognizedArgs;
 
