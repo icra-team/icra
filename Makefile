@@ -10,7 +10,7 @@ BUILD = _build
 SOURCE = src
 DUET_SO = $(DUET_ROOT)/_build/duet/libduet.so
 
-.PHONY: wali duet
+.PHONY: wali duet clean veryclean
 .DEFAULT_GOAL := icra
 
 
@@ -21,6 +21,19 @@ icra: $(DOMAINS_SO) $(WALI_SO) $(DUET_SO) $(BUILD)/icra.o $(BUILD)/libocamlinter
 # some defunct options are: -Wl,-rpath=$TSLRE_LIB_PATH -L$TSLRE_LIB_PATH  -ltslre 
 
 $(shell mkdir -p $(BUILD))
+
+clean:
+	-rm -rf $(BUILD)
+	-rm -rf $(DUET_ROOT)/_build
+	-rm -rf $(WALI_ROOT)/_build
+	-rm -rf $(WALI_ROOT)/lib64
+	-rm $(SOURCE)/icraRegexp.cmx	
+
+veryclean:
+	-rm -rf $(BUILD)
+	-rm -rf $(DUET_ROOT)/_build
+	-cd $(WALI_ROOT) && scons -c
+	-rm $(SOURCE)/icraRegexp.cmx	
 
 $(BUILD)/newton_interface.o: $(SOURCE)/NewtonOcamlInterface.cpp $(SOURCE)/NewtonOcamlInterface.hpp
 	g++ -o $(BUILD)/newton_interface.o -c -Wall -g -O0 -Wextra -fdiagnostics-show-option -fPIC -DBOOST_NO_DEFAULTED_FUNCTIONS=1 -DCHECKED_LEVEL=1 -DEXPORT_GTR_SYMBOLS=0 -DPRATHMEHS_NWA_DETENSOR=0 -DREGEXP_TEST=1 -DUSE_DUET=1 -I$(WALI_ROOT)/Source -I$(BOOST_PATH)/include -I$(WALI_ROOT)/AddOns/Domains/ThirdParty/include -I$(WALI_ROOT)/AddOns/Domains/Source -IThirdParty/include -I"`ocamlc -where`" $(SOURCE)/NewtonOcamlInterface.cpp
