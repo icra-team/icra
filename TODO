@@ -1,0 +1,7 @@
+A list of improvements to make:
+
+  * Reduce the number of necessary command-line arguments
+      - Possibly remove -cra-newton-basic for now
+      - Possibly make -cra-split-loops default?
+
+  * Move tests out of WALi-OpenNWA and into ICRA repository /tests
