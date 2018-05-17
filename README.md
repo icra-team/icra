@@ -4,9 +4,9 @@ ICRA: a static analyzer based on interprocedural compositional recurrence analys
 # Building ICRA
 
 To build ICRA, first install the dependencies of the duet library.
-
-Next, enter the duet subdirectory and run:
-    ./configure
+    (see: duet/README.md)
 
 Return to the parent directory and type:
     make
+
+If this command completes successfully, you should obtain an executable named "icra".
