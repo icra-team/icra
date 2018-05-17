@@ -25,6 +25,7 @@ clean:
 	-rm $(ICRA_BINARY)
 	-rm -rf $(BUILD)
 	-rm -rf $(DUET_ROOT)/_build
+	-cd duet && ocamlbuild -clean
 	-rm -rf $(WALI_ROOT)/_build
 	-rm -rf $(WALI_ROOT)/lib64
 	-rm $(SOURCE)/icraRegexp.cmx	
@@ -33,6 +34,7 @@ veryclean:
 	-rm $(ICRA_BINARY)
 	-rm -rf $(BUILD)
 	-rm -rf $(DUET_ROOT)/_build
+	-cd duet && ocamlbuild -clean
 	-cd $(WALI_ROOT) && scons -c
 	-rm $(SOURCE)/icraRegexp.cmx	
 
