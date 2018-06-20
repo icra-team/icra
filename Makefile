@@ -67,7 +67,7 @@ $(SOURCE)/icraRegexp.cmx: $(SOURCE)/icraRegexp.ml
 $(DUET_SO): $(SOURCE)/icraRegexp.cmx
 	cd $(DUET_ROOT) && ./configure
 	cd $(DUET_ROOT) && ocamlbuild duet/duet.cmx duet/newton_interface.cmx duet/duet.native
-	cd $(DUET_ROOT)/_build/duet && ocamlfind ocamlopt -output-obj -g -linkpkg -package camlidl -package Z3 -package ppx_deriving -package batteries -package apron.polkaMPQ -package apron.boxMPQ -package apron.octMPQ -package ocamlgraph -package cil -package cil.default-features -package ocrs -package ntl -o libduet.so ../srk/src/srk.cmx ../apak/apak.cmx core.cmx afg.cmx ast.cmx hlir.cmx report.cmx cfgIr.cmx cmdLine.cmx pointerAnalysis.cmx call.cmx solve.cmx ai.cmx config.cmx datalog.cmx inline.cmx bddpa.cmx interproc.cmx cra.cmx translateCil.cmx cbpAst.cmx cbpLex.cmx cbpParse.cmx translateCbp.cmx conversion.cmx newtonDomain.cmx newton_interface.cmx safety.cmx duet.cmx ../../../$(SOURCE)/icraRegexp.cmx
+	cd $(DUET_ROOT)/_build/duet && ocamlfind ocamlopt -output-obj -g -linkpkg -package camlidl -package Z3 -package ppx_deriving -package batteries -package apron.polkaMPQ -package apron.boxMPQ -package apron.octMPQ -package ocamlgraph -package cil -package cil.default-features -package ocrs -package ntl -o libduet.so ../srk/src/srk.cmx ../apak/apak.cmx core.cmx InterIR.cmx afg.cmx ast.cmx hlir.cmx report.cmx cfgIr.cmx cmdLine.cmx pointerAnalysis.cmx call.cmx solve.cmx ai.cmx config.cmx datalog.cmx inline.cmx bddpa.cmx interproc.cmx cra.cmx translateCil.cmx cbpAst.cmx cbpLex.cmx cbpParse.cmx translateCbp.cmx conversion.cmx newtonDomain.cmx newton_interface.cmx safety.cmx duet.cmx ../../../$(SOURCE)/icraRegexp.cmx
 
 duet:
 	-rm $(DUET_SO)
