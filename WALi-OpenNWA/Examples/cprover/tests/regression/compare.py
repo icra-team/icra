@@ -177,7 +177,7 @@ for line in fin:
 		fout.write('<tr align=\"center\">\n')
 		
 		if (runMode == NEWTON_BELOW):
-			fout.write('<td rowspan="2">')
+			fout.write('<td rowspan="1">')
 			fout.write('<a href=\"inputs/' + fileName + '\">' + fileName + '</a>')
 			fout.write('</td>\n')
 		
@@ -187,7 +187,7 @@ for line in fin:
 		fout.write('</td>\n')
 		
 		if (runMode == NEWTON_BELOW):
-			fout.write('<td rowspan="2">')
+			fout.write('<td rowspan="1">')
 			fout.write('<a href=\"outputs/' + fileName + '.duet.out\">duet</a>')
 			fout.write('</td>\n')
 		
@@ -285,7 +285,7 @@ for line in fin:
 		while (colCtr < 6):
 			colCtr += 1
 			fout.write('<td></td>\n')
-		fout.write('<td rowspan="2">')
+		fout.write('<td rowspan="1">')
 		for i in range(len(words)-1):
 			if (flipResult):
 				if (words[i+1] == "FAIL"):
@@ -306,6 +306,9 @@ for line in fin:
 		
 		
 	elif (words[0] == "__TIMEOUT"):
+		while (colCtr < 4):
+			colCtr += 1
+			fout.write('<td></td>\n')
 		fout.write('<td>')	
 		if ((res != None) and (res.status != "timeout")):
 			fout.write('<font color=\"#FF0000\">TIMEOUT</font><br>')
@@ -316,6 +319,9 @@ for line in fin:
 		
 		
 	elif (words[0] == "__EXCEPTION"):
+		while (colCtr < 4):
+			colCtr += 1
+			fout.write('<td></td>\n')
 		fout.write('<td>')
 		if ((res != None) and (res.status != "exception")):
 			fout.write('<font color=\"#FF0000\">EXCEPTION</font><br>')

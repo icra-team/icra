@@ -23,7 +23,8 @@ SUITE="$NEWTON_DIR/Examples/cprover/tests/regression"
 TESTDIRS=( $NEWTON_DIR/Examples/cprover/tests/c4b $NEWTON_DIR/Examples/cprover/tests/misc-recursive $NEWTON_DIR/Examples/cprover/tests/duet $NEWTON_DIR/Examples/cprover/tests $NEWTON_DIR/Examples/cprover/tests/STAC/polynomial/assert $NEWTON_DIR/Examples/cprover/tests/snlee/snlee_tests $NEWTON_DIR/Examples/cprover/tests/STAC/FiniteDifferencing $NEWTON_DIR/Examples/cprover/tests/STAC/LESE $NEWTON_DIR/Examples/cprover/tests/STAC/LowerBound $NEWTON_DIR/Examples/cprover/tests/STAC/LZ $NEWTON_DIR/Examples/cprover/tests/sv-benchmarks/* $NEWTON_DIR/Examples/cprover/tests/rec-sv-benchmarks/rec-loop-lit $NEWTON_DIR/Examples/cprover/tests/rec-sv-benchmarks/rec-loop-new $NEWTON_DIR/Examples/cprover/tests/recurrences $NEWTON_DIR/Examples/cprover/tests/exponential $NEWTON_DIR/Examples/cprover/tests/frankenstein/HOLA $NEWTON_DIR/Examples/cprover/tests/frankenstein/relational $NEWTON_DIR/Examples/cprover/tests/STAC/canonical2017 $NEWTON_DIR/Examples/cprover/tests/misc2017 $NEWTON_DIR/Examples/cprover/tests/max_equals $NEWTON_DIR/Examples/cprover/tests/branching_loops $NEWTON_DIR/Examples/cprover/tests/strings_numeric $NEWTON_DIR/Examples/cprover/tests/ethereum )
 
 
-NEWTON="$NEWTON_DIR/_build64/Examples/cprover/NewtonOcaml"
+NEWTON="$NEWTON_DIR/../icra"
+#NEWTON="$NEWTON_DIR/_build64/Examples/cprover/NewtonOcaml"
 DUET="$DUET_DIR/duet.native"
 
 # The outputs are saved here
@@ -99,25 +100,25 @@ for directory in ${TESTDIRS[@]}; do
 			echo "" >> $RESULT
 		fi
 		
-		echo -n " Above ..."
-		start=$(date +%s%N)
-		cd $NEWTON_DIR
-		#eval "timeout $TIMEOUT $NEWTON -cra_newton_above -cra-forward-inv -cra-split-loops -cra-disable-simplify --test=$RESULT $testf &> $above_outfile"
-		#eval "timeout $TIMEOUT $NEWTON -cra_newton_above -cra-forward-inv -cra-split-loops --test=$RESULT $testf &> $above_outfile" # until 2018-03-24
-		eval "timeout $TIMEOUT $NEWTON -cra_newton_above -cra-split-loops --test=$RESULT $testf &> $above_outfile"
-		success=$?
-		if (($success==124)); then
-			echo "__TIMEOUT" >> $RESULT
-			echo -e "\e[31mTimeout\e[0m"
-		elif (($success!=0)); then
-			echo "__EXCEPTION" >> $RESULT
-			echo -e "\e[31mException\e[0m"
-		else
-			echo "" >> $RESULT
-		fi
-		end=$(date +%s%N)
-		len=$(expr $end - $start)
-		echo "__NTIME $len" >> $RESULT
+		###echo -n " Above ..."
+		###start=$(date +%s%N)
+		###cd $NEWTON_DIR
+		####eval "timeout $TIMEOUT $NEWTON -cra_newton_above -cra-forward-inv -cra-split-loops -cra-disable-simplify --test=$RESULT $testf &> $above_outfile"
+		####eval "timeout $TIMEOUT $NEWTON -cra_newton_above -cra-forward-inv -cra-split-loops --test=$RESULT $testf &> $above_outfile" # until 2018-03-24
+		###eval "timeout $TIMEOUT $NEWTON -cra_newton_above -cra-split-loops --test=$RESULT $testf &> $above_outfile"
+		###success=$?
+		###if (($success==124)); then
+		###	echo "__TIMEOUT" >> $RESULT
+		###	echo -e "\e[31mTimeout\e[0m"
+		###elif (($success!=0)); then
+		###	echo "__EXCEPTION" >> $RESULT
+		###	echo -e "\e[31mException\e[0m"
+		###else
+		###	echo "" >> $RESULT
+		###fi
+		###end=$(date +%s%N)
+		###len=$(expr $end - $start)
+		###echo "__NTIME $len" >> $RESULT
 		
 		echo " Done"
 			

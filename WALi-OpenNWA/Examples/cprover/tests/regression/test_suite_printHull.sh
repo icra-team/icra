@@ -17,7 +17,8 @@ TESTDIRS=( $NEWTON_DIR/Examples/cprover/tests/c4b_print_hull $NEWTON_DIR/Example
 #TESTDIRS=( $NEWTON_DIR/Examples/cprover/tests/tmp_single_printhull )
 #TESTDIRS=( $NEWTON_DIR/Examples/cprover/tests/c4b_print_hull )
 
-NEWTON="$NEWTON_DIR/_build64/Examples/cprover/NewtonOcaml"
+NEWTON="$NEWTON_DIR/../icra"
+#NEWTON="$NEWTON_DIR/_build64/Examples/cprover/NewtonOcaml"
 
 # The outputs are saved here
 OUTDIR="$SUITE/outputs"

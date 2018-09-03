@@ -12,7 +12,8 @@ shopt -s nullglob
 
 #NEWTON_DIR="/bat0/stac/Code/CSFE_JAVA_API/jbreck/WALi-OpenNWA/"
 #NEWTON_DIR="/bat0/stac/Code/WALi-Sandbox/WALi-OpenNWA/" # had /
-NEWTON_DIR="/bat0/stac/Code/WALi-Sandbox/WALi-OpenNWA"
+#NEWTON_DIR="/bat0/stac/Code/WALi-Sandbox/WALi-OpenNWA"
+NEWTON_DIR="/bat0/stac/Code/icra/WALi-OpenNWA"
 #NEWTON_DIR="/bat0/stac/Code/Ark2-Sandbox/WALi-OpenNWA/"
 #NEWTON_DIR="$(readlink -f .)"
 #NEWTON_DIR="$(pwd)"
@@ -34,11 +35,13 @@ JAVA_MEP_PACKAGE="/bat0/stac/Code/Java-benchmarks/marked_entry_point"
 #TESTDIRS=( $JAVA_PACKAGE/quick_java_examples/ )
 #TESTDIRS=( /bat0/stac/Code/Ark2-Sandbox/WALi-OpenNWA/Category2_E1_E4_unmodified/ ) 
 #TESTDIRS=( $JAVA_PACKAGE/quick_java_examples/ $JAVA_PACKAGE/simple_java_examples/ $JAVA_PACKAGE/selected_canonical/ $JAVA_PACKAGE/new-canonical-examples/all_canonical_jars/ $NEWTON_DIR/Examples/cprover/tests/java/abstraction_ladder_1/ ) # current as of 2017-04-29
-TESTDIRS=( $JAVA_MEP_PACKAGE/degree_n_monomial/ $NEWTON_DIR/Examples/cprover/tests/java_examples/Aymeric_progs/ )
+TESTDIRS=( $JAVA_MEP_PACKAGE/degree_n_monomial/ $NEWTON_DIR/Examples/cprover/tests/java_examples/Aymeric_examples/ )
 
 #/Code/Java-benchmarks/java_package/new-canonical-examples/all_canonical_jars
 
-NEWTON="/bat0/stac/Code/WALi-Sandbox/WALi-OpenNWA/java_icra.sh"
+NEWTON="/bat0/stac/Code/icra/java_icra.sh" # This one is updated to work with the E6 VM
+#NEWTON="/bat0/stac/Code/icra/WALi-OpenNWA/java_icra.sh" # OLD VERSION; DON'T USE
+#NEWTON="/bat0/stac/Code/WALi-Sandbox/WALi-OpenNWA/java_icra.sh"
 #NEWTON="/bat0/stac/Code/CSFE_JAVA_API/params-icra-bytecode.sh"
 #NEWTON="$NEWTON_DIR/_build64/Examples/cprover/NewtonOcaml"
 #DUET="$DUET_DIR/duet.native"
@@ -63,7 +66,7 @@ echo "    GRAMMATECH_HOME"
 echo "    PATH"
 echo "  and running IST_settings/config.sh"
 export GRAMMATECH_HOME=/bat0/stac/Code/CSFE_JAVA_API
-export PATH=$GRAMMATECH_HOME/IST/:$PATH
+export PATH=$GRAMMATECH_HOME/IST/:$GRAMMATECH_HOME/IST/pyist/:$PATH
 source $GRAMMATECH_HOME/IST/engagement/IST_settings/config.sh
 #########################################################################
 

@@ -24,6 +24,7 @@ def parseRes( fin ):
     nextNameOfOutput = ""
     for line in fin:
         words = line.split()
+        if len(words) == 0 : continue
         if (words[0] == "__DIRECTORY"):
             #currentDir = os.path.basename(words[1])
             currentDir = words[1]

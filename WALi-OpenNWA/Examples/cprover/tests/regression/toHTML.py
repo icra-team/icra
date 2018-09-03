@@ -73,14 +73,17 @@ for line in fin:
                         fout.write('<tr align=\"center\" style="background-color:#000000;">\n')
                         fout.write('<td><font color=\"#FFFFFF\"><b>Total</b></font></td>\n')
                         fout.write('<td colspan=\"2\"><font color=\"#FFFFFF\">')
-                        fout.write('Below Assertions (True) = ' + str(belowAssertionsT) + '/' + str(totAssertionsT) + '<br>')
-                        fout.write('Above Assertions (True) = ' + str(aboveAssertionsT) + '/' + str(totAssertionsT) + '</font></td>\n')
+                        fout.write('ICRA Assertions (True) = ' + str(belowAssertionsT) + '/' + str(totAssertionsT) + '<br>')
+                        #fout.write('Above Assertions (True) = ' + str(aboveAssertionsT) + '/' + str(totAssertionsT) + '</font></td>\n')
+                        fout.write('</td>\n')
                         fout.write('<td colspan=\"2\"><font color=\"#FFFFFF\">')
-                        fout.write('Below Assertions (False) = ' + str(belowAssertionsF) + '/' + str(totAssertionsF) + '<br>')
-                        fout.write('Above Assertions (False) = ' + str(aboveAssertionsF) + '/' + str(totAssertionsF) + '</font></td>\n')
+                        fout.write('ICRA Assertions (False) = ' + str(belowAssertionsF) + '/' + str(totAssertionsF) + '<br>')
+                        #fout.write('Above Assertions (False) = ' + str(aboveAssertionsF) + '/' + str(totAssertionsF) + '</font></td>\n')
+                        fout.write('</td>\n')
                         fout.write('<td colspan=\"2\"><font color=\"#FFFFFF\">')
-                        fout.write('Below Time = ' + str(belowTime / 1000.0) + '<br>')
-                        fout.write('Above Time = ' + str(aboveTime / 1000.0) + '</font></td>\n')
+                        fout.write('ICRA Time = ' + str(belowTime / 1000.0) + '<br>')
+                        #fout.write('Above Time = ' + str(aboveTime / 1000.0) + '</font></td>\n')
+                        fout.write('</td>\n')
                         fout.write('</tr>\n')
                         belowTime = 0.0
                         aboveTime = 0.0
@@ -120,7 +123,7 @@ for line in fin:
                 fout.write('<tr align=\"center\" style="background-color:'+["white","#AAAAAA"][bgColor]+';">\n')
                 
                 if (runMode == 'below'):
-                        fout.write('<td rowspan="2">')
+                        fout.write('<td rowspan="1">')
                         fout.write('<a href=\"inputs/' + fileName + '\">' + fileName + '</a>')
                         fout.write('</td>\n')
                 
@@ -129,7 +132,7 @@ for line in fin:
                 fout.write('</td>\n')
                 
                 if (runMode == 'below'):
-                        fout.write('<td rowspan="2">')
+                        fout.write('<td rowspan="1">')
                         fout.write('<a href=\"outputs/' + fileName + '.duet.out\">duet</a>')
                         fout.write('</td>\n')
                 
@@ -209,7 +212,7 @@ for line in fin:
                 while (colCtr < 6):
                         colCtr += 1
                         fout.write('<td></td>\n')
-                fout.write('<td rowspan="2">')
+                fout.write('<td rowspan="1">')
                 for i in range(len(words)-1):
                         if (flipResult):
                                 if (words[i+1] == "FAIL"):
@@ -230,11 +233,17 @@ for line in fin:
                 
                 
         elif (words[0] == "__TIMEOUT"): 
+                while (colCtr < 4):
+                        colCtr += 1
+                        fout.write('<td></td>\n')
                 fout.write('<td><font color=\"#800080\">TIMEOUT</font></td>\n')
                 colCtr += 1
                 
                 
         elif (words[0] == "__EXCEPTION"):
+                while (colCtr < 4):
+                        colCtr += 1
+                        fout.write('<td></td>\n')
                 fout.write('<td><font color=\"#800080\">EXCEPTION</font></td>\n')
                 colCtr += 1
                 
@@ -242,14 +251,17 @@ fout.write('</tr>\n')
 fout.write('<tr align=\"center\" style="background-color:#000000;">\n')
 fout.write('<td><font color=\"#FFFFFF\"><b>Total</b></font></td>\n')
 fout.write('<td colspan=\"2\"><font color=\"#FFFFFF\">')
-fout.write('Below Assertions (True) = ' + str(belowAssertionsT) + '/' + str(totAssertionsT) + '<br>')
-fout.write('Above Assertions (True) = ' + str(aboveAssertionsT) + '/' + str(totAssertionsT) + '</font></td>\n')
+fout.write('ICRA Assertions (True) = ' + str(belowAssertionsT) + '/' + str(totAssertionsT) + '<br>')
+#fout.write('Above Assertions (True) = ' + str(aboveAssertionsT) + '/' + str(totAssertionsT) + '</font></td>\n')
+fout.write('</td>\n')
 fout.write('<td colspan=\"2\"><font color=\"#FFFFFF\">')
-fout.write('Below Assertions (False) = ' + str(belowAssertionsF) + '/' + str(totAssertionsF) + '<br>')
-fout.write('Above Assertions (False) = ' + str(aboveAssertionsF) + '/' + str(totAssertionsF) + '</font></td>\n')
+fout.write('ICRA Assertions (False) = ' + str(belowAssertionsF) + '/' + str(totAssertionsF) + '<br>')
+#fout.write('Above Assertions (False) = ' + str(aboveAssertionsF) + '/' + str(totAssertionsF) + '</font></td>\n')
+fout.write('</td>\n')
 fout.write('<td colspan=\"2\"><font color=\"#FFFFFF\">')
-fout.write('Below Time = ' + str(belowTime / 1000.0) + '<br>')
-fout.write('Above Time = ' + str(aboveTime / 1000.0) + '</font></td>\n')
+fout.write('ICRA Time = ' + str(belowTime / 1000.0) + '<br>')
+#fout.write('Above Time = ' + str(aboveTime / 1000.0) + '</font></td>\n')
+fout.write('</td>\n')
 
 fout.write('</tr>\n')
 fout.write('</table>\n')
