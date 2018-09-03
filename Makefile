@@ -16,7 +16,7 @@ ICRA_BINARY = icra
 .DEFAULT_GOAL := icra
 
 $(ICRA_BINARY): $(DOMAINS_SO) $(WALI_SO) $(DUET_SO) $(BUILD)/icra.o $(BUILD)/icra_callbacks.o $(BUILD)/ire.o $(BUILD)/ire_callbacks.o 
-	g++ -g -o icra -Wl,-rpath=$(BOOST_PATH)/lib -Wl,-rpath=$(DUET_ROOT)/_build/duet -Wl,-rpath=$(DUET_ROOT)/_build/src/duet -Wl,-rpath=$(WALI_ROOT) -Wl,-rpath=$(WALI_ROOT)/lib64 -Wl,--start-group $(BUILD)/icra.o $(BUILD)/ire_callbacks.o $(BUILD)/ire.o $(BUILD)/icra_callbacks.o -L$(BOOST_PATH)/lib -L$(WALI_ROOT)/lib64 -L$(BUILD) -L"`ocamlc -where`" -L$(DUET_ROOT)/_build/duet -L$(WALI_ROOT) -lrt -lduet -lwali -lwalidomains -lglog -Wl,--end-group
+	g++ -g -o icra -Wl,-rpath=\$$ORIGIN/$(BOOST_PATH)/lib -Wl,-rpath=\$$ORIGIN/$(DUET_ROOT)/_build/duet -Wl,-rpath=\$$ORIGIN/$(DUET_ROOT)/_build/src/duet -Wl,-rpath=\$$ORIGIN/$(WALI_ROOT) -Wl,-rpath=\$$ORIGIN/$(WALI_ROOT)/lib64 -Wl,--start-group $(BUILD)/icra.o $(BUILD)/ire_callbacks.o $(BUILD)/ire.o $(BUILD)/icra_callbacks.o -L$(BOOST_PATH)/lib -L$(WALI_ROOT)/lib64 -L$(BUILD) -L"`ocamlc -where`" -L$(DUET_ROOT)/_build/duet -L$(WALI_ROOT) -lrt -lduet -lwali -lwalidomains -lglog -Wl,--end-group
 	@echo " **** ICRA build completed successfully **** "
 
 $(shell mkdir -p $(BUILD))
