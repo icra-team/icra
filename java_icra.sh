@@ -1,7 +1,9 @@
 #!/bin/bash
 #
-# Note: this version of java_icra.sh was designed to work with the 2017-10-25 STAC VM
-#   It may need to be updated to work with the 2017-12-18 STAC VM
+# This script is used to run ICRA on a Java JAR file by passing that file
+#   through Grammatech's Inspector SpaceTime (IST) tool.  The current version 
+#   of this script assumes that the user has an installation of IST at
+#   the version corresponding to the 2018/07/18 E6 STAC VM.
 
 # join_by taken from: https://stackoverflow.com/questions/1527049/join-elements-of-an-array
 function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
