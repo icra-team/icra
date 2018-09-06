@@ -113,9 +113,10 @@ module V = struct
   let is_global = Var.is_global % var_of_value
 end
 
-module MakeTransition(V : Transition.Var) = struct
+module MakeTransition (V : Transition.Var) () = struct
   include Transition.Make(Ctx)(V)
   open Iteration
+  open SolvablePolynomial
   module SPOne = SumWedge (SolvablePolynomial) (SolvablePolynomialOne) ()
   module SPG = ProductWedge (SPOne) (WedgeGuard)
   module SPPeriodicRational = Sum (SPG) (PresburgerGuard) ()
@@ -137,7 +138,7 @@ module MakeTransition(V : Transition.Var) = struct
     else mul x y
 end
 
-module K = MakeTransition(V)
+module K = MakeTransition(V)()
 
 type ptr_term =
   { ptr_val : Ctx.term;
