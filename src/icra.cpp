@@ -891,7 +891,7 @@ void checkAssertions(WFA& outfaNewton) {
 
 void print_stats() {
     CAMLparam0();
-    cout << "Printing stats" << std::endl;
+    cout << "\nPrinting stats:\n" << std::endl;
     value * stats = caml_named_value("print_stats");
     caml_callback(*stats, Val_unit);
     CAMLreturn0;
@@ -981,6 +981,7 @@ int main(int argc, char **argv)
     aboveBelowMode = NEWTON_FROM_BELOW;
     doSmtlibOutput = false;
     std::vector <char *> unrecognizedArgs;
+    bool doStats = false;
 
     // As a temporary measure, allow arguments to be given starting with a plus
     bool warnAboutPlus = true;
@@ -1024,6 +1025,7 @@ int main(int argc, char **argv)
         {"bound-all",        required_argument, 0,            'C' },
         {"smtlib-output",    no_argument,       0,            'U' },
         {"cra-split_loops",  no_argument,       0,            'E' }, // compensating for a typo; remove this later...
+        {"stats",            no_argument,       0,            'J' },
         {0,                  0,                 0,             0  }
     };
 
@@ -1094,6 +1096,13 @@ int main(int argc, char **argv)
                 }
                 unrecognizedArgs.push_back("-cra-split-loops");
                 break;  
+            case 'J':
+                if (newtonVerbosity >= NV_STANDARD_WARNINGS) {
+                    std::cout << "Passing command-line option " << "-stats" << " to duet." << std::endl;
+                }
+                unrecognizedArgs.push_back("-stats");
+                doStats = true;
+                break;  
             // unrecognized option, currently we just pass it to duet
             case '?':                       
                 if (newtonVerbosity >= NV_STANDARD_WARNINGS) {
@@ -1148,7 +1157,8 @@ int main(int argc, char **argv)
             std::cout << "Not implemented yet." << std::endl;
         }
     }   
-    //cout << "Printing stats" << std::endl;
-    //print_stats();
+    if (doStats) {
+        print_stats();
+    }
 }
 

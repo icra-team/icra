@@ -67,7 +67,8 @@ for directory in ${TESTDIRS[@]}; do
         #
         rm -f $below_outfile
         #COMMAND="$NEWTON -cra_newton_basic -cra-forward-inv -cra-split-loops" # until 2018-03-23
-        COMMAND="$NEWTON -cra_newton_basic -cra-split-loops"
+        #COMMAND="$NEWTON -cra_newton_basic -cra-split-loops" # until 2018-09-24
+        COMMAND="$NEWTON -cra_newton_basic -cra-split-loops -stats"
         echo $COMMAND >> $below_outfile
         echo "" >> $below_outfile
 		eval "timeout $TIMEOUT $COMMAND --test=$RESULT $testf &>> $below_outfile"
@@ -92,7 +93,8 @@ for directory in ${TESTDIRS[@]}; do
 		echo -n "__DUET " >> $RESULT
 		cd $DUET_DIR
 		#eval "timeout $TIMEOUT $DUET -cra -cra-forward-inv -cra-split-loops -test $RESULT $testf &> $duet_outfile" # until 2018-03-24
-		eval "timeout $TIMEOUT $DUET -cra -cra-split-loops -test $RESULT $testf &> $duet_outfile" 
+		#eval "timeout $TIMEOUT $DUET -cra -cra-split-loops -test $RESULT $testf &> $duet_outfile" # until 2018-09-24
+		eval "timeout $TIMEOUT $DUET -cra -cra-split-loops -stats -test $RESULT $testf &> $duet_outfile" 
 		if (($?==124)); then
 			echo "TIMEOUT" >> $RESULT
 			echo -ne "\e[31mTimeout\e[0m"
