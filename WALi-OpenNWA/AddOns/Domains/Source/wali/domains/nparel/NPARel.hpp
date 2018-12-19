@@ -113,7 +113,7 @@ namespace wali
 
           virtual std::ostream& printAbstract( std::ostream& o ) const = 0; // print an iteration-domain element
 
-          virtual std::ostream& printHull( std::ostream& o, unsigned int indent, int var ) const = 0; // for resource-usage bounds generation
+	  virtual std::ostream& printHull( std::ostream& o, unsigned int indent, int var, const char *procedure ) const = 0; // for resource-usage bounds generation
 
           virtual std::ostream& printSmtlib( std::ostream& o ) const = 0; // for writing out procedure summaries in SMTLIB format
 

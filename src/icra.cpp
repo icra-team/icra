@@ -749,11 +749,12 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
             wali::ref_ptr<wali::IntSource> is = dynamic_cast<wali::IntSource *>(ks.get_ptr());
             if (is != NULL) {
                 int vertex = is->getInt();
+		std::string procedure = getProcedureNameFromNode(vertex);
                 std::cout << getProcedureNameFromNode(vertex) << std::endl;
+		intraprocWeight->printHull(std::cout, 0, variableID, procedure.c_str());
             } else {
                 std::cout << "unknown procedure" << std::endl;
             }
-            intraprocWeight->printHull(std::cout, 0, variableID);
             std::cout << std::endl;
         }
     }
@@ -769,7 +770,7 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
                 if (procedure == program->main) { continue; } // skip the main procedure
                 int variableID = getGlobalBoundingVarFromName(variableName.c_str());
                 std::cout << "Variable bounds for procedure '" << procedure->name << "': " << std::endl;
-                procedure->summary->printHull(std::cout, 0, variableID);
+                procedure->summary->printHull(std::cout, 0, variableID, procedure->name.c_str());
                 std::cout << std::endl;
             }
         }
@@ -787,7 +788,7 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
             int variableID = getGlobalBoundingVarFromName(variableName.c_str());
             //std::cout << "Variable bounds for main procedure: " << std::endl;
             std::cout << "Variable bounds for procedure of entry: " << std::endl;
-            program->main->summary->printHull(std::cout, 0, variableID);
+            program->main->summary->printHull(std::cout, 0, variableID, "main");
             std::cout << std::endl;
         }
         for(std::vector<std::string>::iterator strit = boundingVarEntry.begin();
@@ -796,7 +797,7 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
             int variableID = getGlobalBoundingVarFromName(variableName.c_str());
             //std::cout << "Variable bounds for main procedure: " << std::endl;
             std::cout << "Variable bounds for procedure of entry: " << std::endl;
-            program->main->summary->printHull(std::cout, 0, variableID);
+            program->main->summary->printHull(std::cout, 0, variableID, "main");
             std::cout << std::endl;
         }
     }

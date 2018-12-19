@@ -790,7 +790,7 @@ wali::sem_elem_tensor_t DuetRel::detensorTranspose()
     CAMLreturnT(duetrel_t,d);
 }
 
-std::ostream& DuetRel::printHull( std::ostream& o, unsigned int indent, int var ) const 
+std::ostream& DuetRel::printHull( std::ostream& o, unsigned int indent, int var, const char* procedure ) const
 {
     CAMLparam0();
     CAMLlocal2(sval,dval);
@@ -798,7 +798,9 @@ std::ostream& DuetRel::printHull( std::ostream& o, unsigned int indent, int var 
     dval = this->getValue();
     assert(!isTensored);
     value * print_hull = caml_named_value("print_var_bounds_callback");
-    sval = caml_callback3(*print_hull, Val_int(indent), Val_int(var), dval);
+    value args[4] = { Val_int(indent), Val_int(var), dval, caml_copy_string(procedure) };
+
+    sval = caml_callbackN(*print_hull, 4, args);
 
     o << String_val(sval);
     CAMLreturnT(std::ostream&, o);
