@@ -663,9 +663,8 @@ void extractProcedureSummaries(WFA& outfaNewton, ProgramRefPtr program) {
             }
         } else {
             foundMain = true;
-            //name = "main";
-            name = "procedure of entry";
-            // Note: its name may not actually be main, but we have no mechanism to find out the main procedure's actual name
+            //name = "procedure of entry";
+	    name = getProcedureNameFromNode(entry_key);
         }
 
         // Finally, we can extract the procedure summary itself:
@@ -778,6 +777,7 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
 
     // Third, handle variables to be printed in main, whether from the --bound-entry or --bound-all parameters 
     if (program->main != NULL) {
+        std::string main_name = getProcedureNameFromNode(entry_key);
         for(std::vector<std::string>::iterator strit = boundingVarAll.begin();
                 strit != boundingVarAll.end(); ++strit) {
             std::string variableName = *strit;
@@ -786,18 +786,16 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
                 continue;
             }
             int variableID = getGlobalBoundingVarFromName(variableName.c_str());
-            //std::cout << "Variable bounds for main procedure: " << std::endl;
-            std::cout << "Variable bounds for procedure of entry: " << std::endl;
-            program->main->summary->printHull(std::cout, 0, variableID, "main");
+            std::cout << "Variable bounds for entry procedure ('" << main_name << "'): " << std::endl;
+            program->main->summary->printHull(std::cout, 0, variableID, main_name.c_str());
             std::cout << std::endl;
         }
         for(std::vector<std::string>::iterator strit = boundingVarEntry.begin();
                 strit != boundingVarEntry.end(); ++strit) {
             std::string variableName = *strit;
             int variableID = getGlobalBoundingVarFromName(variableName.c_str());
-            //std::cout << "Variable bounds for main procedure: " << std::endl;
-            std::cout << "Variable bounds for procedure of entry: " << std::endl;
-            program->main->summary->printHull(std::cout, 0, variableID, "main");
+            std::cout << "Variable bounds for entry procedure ('" << main_name << "'): " << std::endl;
+            program->main->summary->printHull(std::cout, 0, variableID, main_name.c_str());
             std::cout << std::endl;
         }
     }
