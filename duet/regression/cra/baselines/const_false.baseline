@@ -1,0 +1,4 @@
+./regression/cra/code/const_false-unreach-call1.c:10 >> x == 1U
+
+1 errors total
+0 safe assertions
