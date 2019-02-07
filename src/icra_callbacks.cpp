@@ -61,7 +61,8 @@ extern "C" {
     CAMLparam2(entry, exit);
     //FWPDS * fpds = (FWPDS*) pds;
     //WFA outfa;
-    set_vertices_wfa(stk(Int_val(entry)), stk(Int_val(exit)));
+    set_vertices_wfa(stk(Int_val(entry)), stk(Int_val(exit)), 
+		     Int_val(entry), Int_val(exit));
 
     //entry_key = stk(Int_val(entry));
     //exit_key = stk(Int_val(exit));
