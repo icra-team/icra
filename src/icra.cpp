@@ -78,6 +78,8 @@ std::vector<caml_error_rule> errorRuleHolder;
 std::vector<caml_print_hull_rule> printHullRuleHolder;
 wali::Key entry_key;
 wali::Key exit_key;
+int entry_node;
+int exit_node;
 //relation_t compareWeight; // No longer used
 
 void push_rule(caml_rule rule) {
@@ -98,9 +100,11 @@ void push_print_hull_rule(caml_print_hull_rule rule) {
 void set_compare_weight(relation_t compare) { // no longer used
     //compareWeight = compare;
 }
-void set_vertices_wfa(wali::Key entry, wali::Key exit) {
+void set_vertices_wfa(wali::Key entry, wali::Key exit, int _entry_node, int _exit_node) {
     entry_key = entry;
     exit_key = exit;
+    entry_node = _entry_node;
+    exit_node = _exit_node;
 }
 
 // ----------------------------------------------------------------------------
@@ -664,7 +668,7 @@ void extractProcedureSummaries(WFA& outfaNewton, ProgramRefPtr program) {
         } else {
             foundMain = true;
             //name = "procedure of entry";
-	    name = getProcedureNameFromNode(entry_key);
+	    name = getProcedureNameFromNode(entry_node);
         }
 
         // Finally, we can extract the procedure summary itself:
@@ -749,7 +753,7 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
             if (is != NULL) {
                 int vertex = is->getInt();
 		std::string procedure = getProcedureNameFromNode(vertex);
-                std::cout << getProcedureNameFromNode(vertex) << std::endl;
+                std::cout << procedure << std::endl;
 		intraprocWeight->printHull(std::cout, 0, variableID, procedure.c_str());
             } else {
                 std::cout << "unknown procedure" << std::endl;
@@ -777,7 +781,7 @@ void printVariableBounds(WFA& outfaNewton, ProgramRefPtr program) {
 
     // Third, handle variables to be printed in main, whether from the --bound-entry or --bound-all parameters 
     if (program->main != NULL) {
-        std::string main_name = getProcedureNameFromNode(entry_key);
+        std::string main_name = getProcedureNameFromNode(entry_node);
         for(std::vector<std::string>::iterator strit = boundingVarAll.begin();
                 strit != boundingVarAll.end(); ++strit) {
             std::string variableName = *strit;

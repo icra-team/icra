@@ -12,4 +12,7 @@ typedef DuetRel Relation; // Used for calling static methods
 
 extern bool inNewtonLoop;
 extern bool doWideningThisRound;
+
+void set_vertices_wfa(wali::Key entry, wali::Key exit, int _entry_node, int _exit_node);
+
 #endif
