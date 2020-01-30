@@ -1,7 +1,5 @@
 open OUnit
-open Abstract
 open Syntax
-open SrkApron
 open Test_pervasives
 
 module V = struct
@@ -201,6 +199,10 @@ let recursive () =
   assert_post (RG.path_weight query 0 2) (x + y = (int 100));
   assert_not_post (RG.path_weight query 0 2) (y <= (int 99))
 
+module D = Abstract.MakeAbstractRSY(Ctx)
+
+let affine_invariants = TS.forward_invariants (module TS.LiftIncr(D.AffineRelation))
+
 let aff_eq1 () =
   let open Infix in
   let ts =
@@ -211,7 +213,7 @@ let aff_eq1 () =
        (3, T.assign "y" (y + (int 1)), 1)]
       []
   in
-  let inv = TS.affine_invariants ts 0 in
+  let inv = affine_invariants ts 0 in
   assert_equiv_formula (y - x = (int 10)) (SrkApron.formula_of_property (inv 1));
   assert_equiv_formula (y - x = (int 9)) (SrkApron.formula_of_property (inv 3))
 
@@ -236,7 +238,7 @@ let aff_collatz () =
         1)]
       []
   in
-  let inv = TS.affine_invariants ts 0 in
+  let inv = affine_invariants ts 0 in
   assert_equiv_formula (x = y) (SrkApron.formula_of_property (inv 1))
 
 let aff_karr_fig4 () =
@@ -251,7 +253,7 @@ let aff_karr_fig4 () =
       ]
       []
   in
-  let inv = TS.affine_invariants ts 0 in
+  let inv = affine_invariants ts 0 in
   assert_equiv_formula (x = y + (int 1)) (SrkApron.formula_of_property (inv 1));
   assert_equiv_formula (x = y - (int 1)) (SrkApron.formula_of_property (inv 2))
 
@@ -271,7 +273,7 @@ let aff_karr_fig5 () =
         1)]
       []
   in
-  let inv = TS.affine_invariants ts 0 in
+  let inv = affine_invariants ts 0 in
   assert_equiv_formula ((int 3)*x - y + z = (int 1)) (SrkApron.formula_of_property (inv 1))
 
 

@@ -14,6 +14,7 @@ let srk = Ctx.context
 include Log.Make(struct let name = "cra" end)
 
 let forward_inv_gen = ref true
+let forward_pred_abs = ref false
 let dump_goals = ref false
 let nb_goals = ref 0
 
@@ -132,7 +133,13 @@ module MakeTransition (V : Transition.Var) = struct
 
   module I = Iter(Iteration.MakeDomain(IterDomain))
 
-  let star x = Log.time "cra:star" I.star x
+  let star x =
+    let star x =
+      let abstract = I.alpha x in
+      logf "Loop abstraction:@\n%a" I.pp abstract;
+      I.closure abstract
+    in
+    Log.time "cra.star" star x
 
   let add x y =
     if is_zero x then y
@@ -489,10 +496,25 @@ module TSDisplay = ExtGraph.Display.MakeLabeled
       let show = SrkUtil.mk_show pp
     end)
 
+module SA = Abstract.MakeAbstractRSY(Ctx)
+
 let decorate_transition_system predicates ts entry =
-  TS.forward_invariants_pa predicates ts entry
-  |> List.fold_left (fun ts (v, invariant) ->
+  let module AbsDom =
+    TS.ProductIncr
+      (TS.ProductIncr(TS.LiftIncr(SA.Sign))(TS.LiftIncr(SA.AffineRelation)))
+      (TS.LiftIncr(SA.PredicateAbs(struct let universe = predicates end)))
+  in
+  let inv = TS.forward_invariants (module AbsDom) ts entry in
+  let member varset sym =
+    match V.of_symbol sym with
+    | Some v -> TS.VarSet.mem v varset
+    | None -> false
+  in
+  TS.loop_headers_live ts entry
+  |> List.fold_left (fun ts (v, live) ->
       let fresh_id = (Def.mk (Assume Bexpr.ktrue)).did in
+      let invariant = AbsDom.formula_of (AbsDom.exists (member live) (inv v)) in
+      logf "Found invariant at %d:@;%a" v (Syntax.Formula.pp srk) invariant;
       WG.split_vertex ts v (Weight (K.assume invariant)) fresh_id)
     ts
 
@@ -546,18 +568,21 @@ let make_transition_system rg =
             TS.empty
         in
         let predicates =
-          RG.G.fold_vertex (fun def predicates ->
-              match def.dkind  with
-              | Assume phi when Bexpr.equal phi Bexpr.ktrue ->
-                predicates
-              | Assert (phi, _) | Assume phi ->
-                Syntax.Expr.Set.add (tr_bexpr phi) predicates
-              | _ ->
-                predicates)
-            graph
-            Syntax.Expr.Set.empty
-          |> Syntax.Expr.Set.enum
-          |> BatList.of_enum
+          if !forward_pred_abs then
+            RG.G.fold_vertex (fun def predicates ->
+                match def.dkind  with
+                | Assume phi when Bexpr.equal phi Bexpr.ktrue ->
+                  predicates
+                | Assert (phi, _) | Assume phi ->
+                  Syntax.Expr.Set.add (tr_bexpr phi) predicates
+                | _ ->
+                  predicates)
+              graph
+              Syntax.Expr.Set.empty
+            |> Syntax.Expr.Set.enum
+            |> BatList.of_enum
+          else
+            []
         in
 
         let entry = (RG.block_entry rg block).did in
@@ -669,8 +694,13 @@ let resource_bound_analysis file =
               let rhs =
                 Syntax.substitute_const srk subst (K.get_transform cost summary)
               in
+              let simplify =
+                SrkSimplify.simplify_terms_rewriter srk
+                % Nonlinear.simplify_terms_rewriter srk
+              in
               Ctx.mk_and [Syntax.substitute_const srk subst (K.guard summary);
                           Ctx.mk_eq (Ctx.mk_const cost_symbol) rhs ]
+              |> Syntax.rewrite srk ~up:simplify
             in
             match Wedge.symbolic_bounds_formula ~exists srk guard cost_symbol with
             | `Sat (lower, upper) ->
@@ -703,6 +733,10 @@ let _ =
     ("-cra-no-forward-inv",
      Arg.Clear forward_inv_gen,
      " Turn off forward invariant generation");
+  CmdLine.register_config
+    ("-cra-pred-abs",
+     Arg.Clear forward_pred_abs,
+     " Turn on predicate abstraction in forward invariant generation");
   CmdLine.register_config
     ("-cra-split-loops",
      Arg.Clear IterDomain.SPSplit.abstract_left,
