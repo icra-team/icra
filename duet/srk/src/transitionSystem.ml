@@ -9,7 +9,6 @@ module Int = SrkUtil.Int
 type 'a label = 'a WeightedGraph.label =
   | Weight of 'a
   | Call of int * int
-[@@deriving ord]
 
 module Make
     (C : sig
@@ -36,7 +35,6 @@ module Make
        val mem_transform : var -> t -> bool
        val get_transform : var -> t -> C.t term
        val assume : C.t formula -> t
-       val compare : t -> t -> int
        val equal : t -> t -> bool
        val mul : t -> t -> t
        val add : t -> t -> t
@@ -50,7 +48,7 @@ module Make
 
   type vertex = int
   type transition = T.t
-  type tlabel = T.t label [@@deriving ord]
+  type tlabel = T.t label
 
   include WeightedGraph.MakeRecGraph(struct
       include T
@@ -61,30 +59,13 @@ module Make
   module WGG = struct
     type t = T.t label WG.t
 
-    module V = struct
-      include SrkUtil.Int
-      type label = int
-      let label x = x
-      let create x = x
-    end
+    module V = SrkUtil.Int
 
     module E = struct
-      type label = tlabel
-      type vertex = int
-      type t = int * tlabel * int [@@deriving ord]
+      type t = int * tlabel * int
       let src (x, _, _) = x
-      let dst (_, _, x) = x
-      let label (_, x, _) = x
-      let create x y z = (x, y, z)
-
-      (* Weighted graphs have at most one edge between any pair of
-         node, so sufficient to hash / check equality using endpoints
-         *)
-      let equal (s1, _, d1) (s2, _, d2) = s1 = s2 && d1 = d2
-      let hash (s, _, d) = Hashtbl.hash (s, d)
     end
 
-    let iter_edges_e = WG.iter_edges
     let iter_vertex = WG.iter_vertex
     let iter_succ f tg v =
       WG.U.iter_succ f (WG.forget_weights tg) v
@@ -96,12 +77,6 @@ module Make
   module VarSet = BatSet.Make(Var)
 
   let srk = C.context
-
-  let defines tr =
-    BatEnum.fold
-      (fun defs (var, _) -> VarSet.add var defs)
-      VarSet.empty
-      (T.transform tr)
 
   let uses tr =
     BatEnum.fold
@@ -135,7 +110,7 @@ module Make
           | None -> vars)
     in
     BatEnum.fold
-      (fun refs (var, term) -> VarSet.add var refs)
+      (fun refs (var, _) -> VarSet.add var refs)
       (add_symbols (symbols (T.guard tr)) VarSet.empty)
       (T.transform tr)
 
@@ -223,7 +198,7 @@ module Make
           end);
       mk_and srk (!boxes)
 
-    let analyze (_s, label, t) prop =
+    let analyze (_s, label, _t) prop =
       let context = Z3.mk_context [("timeout", "100")] in
       match prop, label with
       | Bottom, _ -> Bottom
@@ -522,7 +497,7 @@ module Make
             Weight (T.exists (fun x -> not (VarSet.mem x tmp)) tr)
           with Not_found -> label)
 
-  let forward_invariants tg entry  =
+  let forward_invariants_ivl tg entry =
     let wto = Wto.recursive_scc tg entry in
     let init v =
       if v = entry then Box.top
@@ -555,7 +530,7 @@ module Make
     let rec invariants inv wto =
       let open Graph.WeakTopological in
       match wto with
-      | Vertex v -> inv
+      | Vertex _ -> inv
       | Component (v, rest) ->
         let invariant =
           match IntervalAnalysis.M.find v result with
@@ -577,7 +552,7 @@ module Make
     in
     Graph.WeakTopological.fold_left invariants [] wto
 
-  let forward_invariants_pa predicates tg entry  =
+  let forward_invariants_ivl_pa predicates tg entry =
     let wto = Wto.recursive_scc tg entry in
     let init v =
       if v = entry then PAxBox.top
@@ -632,7 +607,7 @@ module Make
     let rec invariants inv wto =
       let open Graph.WeakTopological in
       match wto with
-      | Vertex v -> inv
+      | Vertex _ -> inv
       | Component (v, rest) ->
         let invariant =
           match Analysis.M.find v result with
@@ -719,14 +694,58 @@ module Make
     let rec live hl wto =
       let open Graph.WeakTopological in
       match wto with
-      | Vertex v -> hl
+      | Vertex _ -> hl
       | Component (v, rest) ->
         fold_left live ((v, loop_references wto)::hl) rest
     in
     Graph.WeakTopological.fold_left live [] (Wto.recursive_scc tg entry)
 
-  let affine_invariants tg entry =
-    let man = Polka.manager_alloc_equalities () in
+  module type AbstractDomain = Abstract.MakeAbstractRSY(C).Domain
+
+  module type IncrAbstractDomain = sig
+    include AbstractDomain
+    val incr_abstract : C.t Interpretation.interpretation list -> symbol list -> C.t Smt.Solver.t -> t -> (t * C.t Interpretation.interpretation list)
+  end
+
+  module LiftIncr (A : AbstractDomain) = struct
+    include A
+    let incr_abstract models symbols solver post =
+      let start =      
+        List.fold_left (fun a m -> join a (of_model m symbols)) post models
+      in
+      let rec fix prop models =
+        Smt.Solver.add solver [mk_not srk (formula_of prop)];
+        match Smt.Solver.get_model solver with
+        | `Sat m ->
+          fix (join (of_model m symbols) prop) (m::models)
+        | `Unsat -> (prop, models)
+        | `Unknown ->
+          logf ~level:`warn "Unknown result in affine invariant update";
+          (top, models)
+      in
+      Smt.Solver.push solver;
+      let result = fix start models in
+      Smt.Solver.pop solver 1;
+      result
+  end
+
+  module ProductIncr (A : IncrAbstractDomain)(B : IncrAbstractDomain) = struct
+    type t = A.t * B.t
+    let top = (A.top, B.top)
+    let bottom = (A.bottom, B.bottom)
+    let exists p (v1, v2) = (A.exists p v1, B.exists p v2)
+    let join (v1, v2) (v1', v2') = (A.join v1 v1', B.join v2 v2')
+    let equal (v1, v2) (v1', v2') = A.equal v1 v1' && B.equal v2 v2'
+    let of_model  m symbols = (A.of_model m symbols, B.of_model m symbols)
+    let formula_of  (v1, v2) = mk_and C.context [A.formula_of v1; B.formula_of v2]
+
+    let incr_abstract models symbols solver (post_a, post_b) =
+      let (a, models) = A.incr_abstract models symbols solver post_a in
+      let (b, models) = B.incr_abstract models symbols solver post_b in
+      ((a,b), models)
+  end
+
+  let forward_invariants (type a) (module D : IncrAbstractDomain with type t = a) tg entry =
     let update ~pre weight ~post =
       match weight with
       | Weight tr ->
@@ -749,11 +768,12 @@ module Make
               mk_eq srk (mk_const srk (Var.symbol_of v)) (substitute_map srk subst t))
           |> BatList.of_enum
         in
-        let pre_formula = SrkApron.formula_of_property pre in
+        let pre_formula = D.formula_of pre in
         let tf =
           mk_and srk (substitute_map srk subst (T.guard tr)
                       ::substitute_map srk subst pre_formula
                       ::transform_eqs)
+          |> Nonlinear.uninterpret srk
         in
         let symbols = (* Symbols in pre or defined by tr *)
           VarSet.fold
@@ -765,63 +785,31 @@ module Make
                (symbols pre_formula))
           |> Symbol.Set.elements
         in
-        let env = SrkApron.Env.of_list srk symbols in
-        if SrkApron.is_bottom post then
-          let post =
-            Abstract.affine_hull srk tf symbols
-            |> List.map (fun t ->
-                SrkApron.lexpr_of_vec env (Linear.linterm_of srk t)
-                |> SrkApron.lcons_eqz)
-            |> SrkApron.meet_lcons (SrkApron.top man env)
-          in
-          Some post
+        let solver = Smt.mk_solver srk in
+        Smt.Solver.add solver [tf];
+        let (post', _) = D.incr_abstract [] symbols solver post in
+        if D.equal post' post then
+          None
         else
-          let solver = Smt.mk_solver srk in
-          Smt.Solver.add solver [tf];
-          let rec fix post =
-            Smt.Solver.add solver [mk_not srk (SrkApron.formula_of_property post)];
-            match Smt.Solver.get_model solver with
-            | `Sat m ->
-              let m_equalities =
-                List.map (fun sym ->
-                    Linear.QQVector.add_term
-                      (QQ.of_int (-1))
-                      (Linear.dim_of_sym sym)
-                      (Linear.const_linterm (Interpretation.real m sym))
-                    |> SrkApron.lexpr_of_vec env
-                    |> SrkApron.lcons_eqz
-                  ) symbols
-                |> SrkApron.meet_lcons (SrkApron.top man env)
-              in
-              fix (SrkApron.join post m_equalities)
-            | `Unsat -> post
-            | `Unknown ->
-              logf ~level:`warn "Unknown result in affine invariant update";
-              SrkApron.top man env
-          in
-          let post' = fix post in
-          if SrkApron.equal post post' then
-            None
-          else
-            Some post'
+          Some post'
+
       | Call (_, _) ->
         let is_local s =
           match Var.of_symbol s with
           | None -> true
           | Some v -> not (Var.is_global v)
         in
-        let post' = SrkApron.exists man is_local pre in
-        if SrkApron.leq post post' then
+        let post' = D.exists is_local pre in
+        if D.equal post' post then
           None
         else
-          Some (SrkApron.join post post')
+          Some (D.join post post')
     in
     let init v =
       if v = entry then
-        SrkApron.top man (SrkApron.Env.empty srk)
+        D.top
       else
-        SrkApron.bottom man (SrkApron.Env.empty srk)
+        D.bottom
     in
-    let invariants = WG.forward_analysis tg ~entry ~update ~init in
-    invariants
+    WG.forward_analysis tg ~entry ~update ~init
 end

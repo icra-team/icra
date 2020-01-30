@@ -113,21 +113,45 @@ val mk_app : 'a context -> symbol -> ('a, 'b) expr list -> ('a, 'typ) expr
 
 val mk_var : 'a context -> int -> typ_fo -> ('a, 'typ) expr
 
+(** Create an if-then-else expression. *)
 val mk_ite : 'a context -> 'a formula -> ('a, 'typ) expr -> ('a, 'typ) expr ->
   ('a, 'typ) expr
 
+(** Create an implication formula. *)
 val mk_if : 'a context -> 'a formula -> 'a formula -> 'a formula
 
+(** Create an if-and-only-if formula *)
 val mk_iff : 'a context -> 'a formula -> 'a formula -> 'a formula
 
+(** [substitute srk subst exp] replaces each occurrence of a variable
+   symbol with De Bruijn [i] with the expression [subst i].  If [subst
+   i] contains free variables, capture is avoided. *)
 val substitute : 'a context ->
   (int -> ('a,'b) expr) -> ('a,'typ) expr -> ('a,'typ) expr
 
+(** [substitute_const srk subst exp] replaces each occurrence of a
+   constant symbol [s] with the expression [subst s].  If [subst s]
+   contains free variables, capture is avoided.  Function symbols are
+   not affected. *)
 val substitute_const : 'a context ->
   (symbol -> ('a,'b) expr) -> ('a,'typ) expr -> ('a,'typ) expr
 
+(** [substitute_map srk subst exp] replaces each occurrence of a
+   constant symbol [s] in the domain of the map subst with the
+   expression [subst s].  If [subst s] contains free variables,
+   capture is avoided.  Function symbols are not affected. *)
 val substitute_map : 'a context ->
   (('a,'b) expr Symbol.Map.t) -> ('a,'typ) expr -> ('a,'typ) expr
+
+(** [substitute_sym srk subst exp] replaces each occurrence of a an
+   application [f(e_0,...,e_n)] with the result of replacing the De
+   Bruijn indices [0, ..., n] with [e_0, ..., e_n] in the expression
+   [subst f].  If [subst f] contains free variables (beyond
+   [0,...,n]), capture is avoided.  Constant symbols are treated as
+   nullary function applications, and so are also replaced according
+   to [subst]. *)
+val substitute_sym : 'a context ->
+  (symbol -> ('a,'b) expr) -> ('a,'typ) expr -> ('a,'typ) expr
 
 val fold_constants : (symbol -> 'a -> 'a) -> ('b, 'c) expr -> 'a -> 'a
 
@@ -159,6 +183,14 @@ module Expr : sig
   val refine : 'a context -> ('a, typ_fo) expr -> [ `Term of 'a term
                                                   | `Formula of 'a formula ]
 
+  (** Convert an expression to a term.  Raise [Invalid_arg] if the
+     expression is not a term. *)
+  val term_of : 'a context -> ('a, typ_fo) expr -> 'a term
+
+  (** Convert an expression to a formula.  Raise [Invalid_arg] if the
+     expression is not a formula. *)
+  val formula_of : 'a context -> ('a, typ_fo) expr -> 'a formula
+
   module HT : sig
     type ('a, 'typ, 'b) t
     val create : int -> ('a, 'typ, 'b) t
@@ -180,6 +212,10 @@ module Expr : sig
     val inter : ('a, 'typ) t -> ('a, 'typ) t -> ('a, 'typ) t
     val enum : ('a, 'typ) t -> (('a, 'typ) expr) BatEnum.t
     val mem : ('a, 'typ) expr -> ('a, 'typ) t -> bool
+    val equal : ('a, 'typ) t -> ('a, 'typ) t -> bool
+    val of_list : ('a, 'typ) expr list -> ('a, 'typ) t
+    val elements : ('a, 'typ) t -> ('a, 'typ) expr list
+    val filter : (('a, 'typ) expr -> bool) -> ('a, 'typ) t -> ('a, 'typ) t
   end
 
   module Map : sig
